@@ -1,0 +1,22 @@
+# CMake build output
+/build/
+/cmake-build-*/
+/CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+Makefile
+
+# Local editor state
+.vscode/
+.idea/
+*.user
+
+# Local configuration and runtime data
+.env
+.env.*
+!.env.example
+*.db
+*.db-shm
+*.db-wal
+*.log

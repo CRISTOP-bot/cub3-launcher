@@ -1,0 +1,9 @@
+[Desktop Entry]
+Type=Application
+Name=CUB3 Launcher
+Comment=Lightweight Minecraft Launcher
+Exec=cub3
+Icon=cub3
+Terminal=false
+Categories=Game;
+StartupNotify=true
