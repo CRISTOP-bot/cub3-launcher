@@ -1,5 +1,7 @@
 # CUB3 Launcher
 
+> **¿Buscas lo más nuevo?** El desarrollo activo está en [`dev`](https://github.com/CRISTOP-bot/cub3-launcher/tree/dev), donde encontrarás los cambios más recientes. CUB3 apenas tiene unos días de vida y no es estable; la rama `dev` puede contener errores y cambios incompletos.
+
 Launcher ligero de Minecraft escrito en C++20 y Qt 6. Incluye inicio de sesión
 con Microsoft y Ely.by, instalación de versiones vanilla, noticias oficiales,
 perfiles locales y un instalador Debian.
