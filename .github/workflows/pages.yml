@@ -5,6 +5,8 @@ on:
     branches: [dev]
     paths:
       - "site/**"
+      - "src/**"
+      - "CMakeLists.txt"
       - "assets/images/**"
       - "assets/logos/**"
       - ".github/workflows/pages.yml"
@@ -28,13 +30,27 @@ jobs:
     steps:
       - name: Descargar código
         uses: actions/checkout@v4
+      - name: Instalar dependencias de compilación
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake qt6-base-dev libqt6sql6-sqlite qtkeychain-qt6-dev
+      - name: Compilar paquete .deb de desarrollo
+        run: |
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake --build build --parallel 2
+          cpack --config build/CPackConfig.cmake -B build/packages
+          package=$(find build/packages -maxdepth 1 -type f -name '*.deb' -print -quit)
+          test -n "$package"
+          mkdir -p site/downloads
+          cp "$package" site/downloads/cub3-launcher-dev-amd64.deb
       - name: Preparar sitio estático
         run: |
-          mkdir -p _site/assets/logos _site/assets/platforms
+          mkdir -p _site/assets/logos _site/assets/platforms _site/downloads
           cp site/index.html site/styles.css _site/
           cp site/assets/*.png site/assets/*.svg _site/assets/
           cp site/assets/logos/*.svg _site/assets/logos/
           cp site/assets/platforms/*.png _site/assets/platforms/
+          cp site/downloads/cub3-launcher-dev-amd64.deb _site/downloads/
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Subir sitio
