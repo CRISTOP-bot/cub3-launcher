@@ -694,6 +694,42 @@ QProgressBar::chunk {
 QScrollBar:vertical { width: 9px; }
 QScrollBar::handle:vertical { min-height: 36px; }
 
+/* ===== Login and tutorial dialogs ===== */
+QLabel#LoginError {
+    color: #FF8A83;
+    background-color: rgba(255, 92, 92, 0.10);
+    border: 1px solid rgba(255, 92, 92, 0.28);
+    border-radius: 8px;
+    padding: 8px 10px;
+}
+QDialog {
+    background-color: {{bgPrimary}};
+    color: {{textPrimary}};
+}
+QTabWidget::pane {
+    background-color: {{bgSecondary}};
+    border: 1px solid {{border}};
+    border-radius: 12px;
+    top: -1px;
+}
+QTabBar::tab {
+    background-color: {{bgSecondary}};
+    border: 1px solid transparent;
+    border-radius: 8px;
+    color: {{textSecondary}};
+    padding: 9px 16px;
+    margin-right: 5px;
+}
+QTabBar::tab:selected {
+    background-color: {{bgRaised}};
+    border-color: {{borderHover}};
+    color: {{textPrimary}};
+}
+QTabBar::tab:hover { color: {{accentHover}}; }
+QDialogButtonBox QPushButton { min-width: 100px; }
+QLabel#Heading { font-size: 23px; font-weight: 800; }
+QLabel#Title { font-size: 20px; font-weight: 800; }
+
 /* ===== Checkboxes ===== */
 QCheckBox { color: {{textPrimary}}; spacing: 8px; }
 QCheckBox::indicator {

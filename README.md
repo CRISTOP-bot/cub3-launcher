@@ -28,6 +28,16 @@ sudo apt install ./cub3-launcher-0.1.0-x86_64.deb
 Se requiere una versión de Java compatible con Minecraft. Para Minecraft 26.3,
 el manifiesto solicita Java 25.
 
+## Tutorial rápido
+
+1. Abre **Inicio** y pulsa el botón de cuenta → **Conectar cuenta**.
+2. Elige **Microsoft** para autorizar en el navegador. En esta compilación de desarrollo puede solicitar el ID GUID de una aplicación pública de Microsoft; no uses tu correo ni tu contraseña como ID.
+3. Elige **Ely.by** para escribir el correo o usuario y la contraseña de Ely.by en la pestaña correspondiente. La contraseña no se guarda.
+4. Selecciona una versión en Inicio. En **Ajustes** configura Java si hace falta, además de memoria, resolución y carpeta de juego.
+5. Pulsa **Jugar**. Usa **Perfiles** para ver instalaciones locales y **Descargas** para seguir el progreso.
+
+También puedes abrir la **Guía rápida** desde el botón de ayuda de la barra lateral dentro de la app. Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
+
 ## Funciones
 
 - Inicio de sesión con Microsoft y Ely.by.

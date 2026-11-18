@@ -29,9 +29,14 @@
 #include <QMouseEvent>
 #include <QPainter>
 #include <QIcon>
-#include <QInputDialog>
 #include <QLineEdit>
 #include <QMenu>
+#include <QDialog>
+#include <QDialogButtonBox>
+#include <QFormLayout>
+#include <QCheckBox>
+#include <QRegularExpressionValidator>
+#include <QStringList>
 #include <QCursor>
 #include <QRegularExpression>
 #include <QSettings>
@@ -161,6 +166,197 @@ protected:
     }
 };
 
+class LoginDialog final : public QDialog {
+public:
+    explicit LoginDialog(bool microsoftClientRequired, QWidget* parent = nullptr)
+        : QDialog(parent)
+        , m_microsoftClientRequired(microsoftClientRequired)
+    {
+        setWindowTitle(QStringLiteral("Conecta tu cuenta"));
+        setMinimumWidth(460);
+        setModal(true);
+
+        auto* layout = new QVBoxLayout(this);
+        layout->setContentsMargins(24, 22, 24, 20);
+        layout->setSpacing(14);
+
+        auto* heading = new QLabel(QStringLiteral("Entra a tu mundo"), this);
+        heading->setObjectName(QStringLiteral("Title"));
+        layout->addWidget(heading);
+        auto* intro = new QLabel(
+            QStringLiteral("Elige el proveedor. CUB3 no guarda tu contraseña; Microsoft abre su autorización en el navegador y Ely.by se conecta por HTTPS."), this);
+        intro->setObjectName(QStringLiteral("Secondary"));
+        intro->setWordWrap(true);
+        layout->addWidget(intro);
+
+        m_tabs = new QTabWidget(this);
+        auto* microsoftPage = new QWidget(m_tabs);
+        auto* microsoftLayout = new QVBoxLayout(microsoftPage);
+        microsoftLayout->setContentsMargins(14, 18, 14, 14);
+        auto* microsoftInfo = new QLabel(
+            QStringLiteral("CUB3 abre la autorización oficial de Microsoft en el navegador. "
+                           "No escribas tu contraseña de Microsoft aquí. En esta compilación necesitas un ID de cliente de una aplicación pública; no es tu correo ni tu contraseña."), microsoftPage);
+        microsoftInfo->setWordWrap(true);
+        microsoftLayout->addWidget(microsoftInfo);
+        auto* clientLabel = new QLabel(QStringLiteral("ID de cliente de tu aplicación pública de Microsoft"), microsoftPage);
+        clientLabel->setObjectName(QStringLiteral("Secondary"));
+        clientLabel->setVisible(m_microsoftClientRequired);
+        microsoftLayout->addWidget(clientLabel);
+        m_clientId = new QLineEdit(microsoftPage);
+        m_clientId->setPlaceholderText(QStringLiteral("GUID de la aplicación pública"));
+        m_clientId->setClearButtonEnabled(true);
+        m_clientId->setToolTip(QStringLiteral("No es tu correo ni tu contraseña."));
+        m_clientId->setValidator(new QRegularExpressionValidator(
+            QRegularExpression(QStringLiteral("[0-9A-Fa-f]{0,8}(-[0-9A-Fa-f]{0,4}){0,3}(-[0-9A-Fa-f]{0,12})?")),
+            m_clientId));
+        m_clientId->setVisible(m_microsoftClientRequired);
+        microsoftLayout->addWidget(m_clientId);
+        microsoftLayout->addStretch(1);
+        m_tabs->addTab(microsoftPage, QStringLiteral("Microsoft"));
+
+        auto* elybyPage = new QWidget(m_tabs);
+        auto* elybyLayout = new QFormLayout(elybyPage);
+        elybyLayout->setContentsMargins(14, 18, 14, 14);
+        elybyLayout->setVerticalSpacing(12);
+        m_username = new QLineEdit(elybyPage);
+        m_username->setPlaceholderText(QStringLiteral("Correo o nombre de usuario"));
+        m_username->setClearButtonEnabled(true);
+        m_username->setAccessibleName(QStringLiteral("Correo o nombre de usuario de Ely.by"));
+        elybyLayout->addRow(QStringLiteral("Usuario"), m_username);
+        m_password = new QLineEdit(elybyPage);
+        m_password->setPlaceholderText(QStringLiteral("Contraseña de Ely.by"));
+        m_password->setEchoMode(QLineEdit::Password);
+        m_password->setAccessibleName(QStringLiteral("Contraseña de Ely.by"));
+        elybyLayout->addRow(QStringLiteral("Contraseña"), m_password);
+        auto* showPassword = new QCheckBox(QStringLiteral("Mostrar contraseña mientras escribo"), elybyPage);
+        connect(showPassword, &QCheckBox::toggled, this, [this](bool visible) {
+            m_password->setEchoMode(visible ? QLineEdit::Normal : QLineEdit::Password);
+        });
+        elybyLayout->addRow(QString(), showPassword);
+        auto* privacyNote = new QLabel(QStringLiteral("La contraseña solo se usa para autenticarte y no se guarda."), elybyPage);
+        privacyNote->setObjectName(QStringLiteral("Secondary"));
+        privacyNote->setWordWrap(true);
+        elybyLayout->addRow(QString(), privacyNote);
+        m_tabs->addTab(elybyPage, QStringLiteral("Ely.by"));
+        layout->addWidget(m_tabs);
+
+        auto* buttons = new QDialogButtonBox(this);
+        m_continue = buttons->addButton(QStringLiteral("Continuar"), QDialogButtonBox::AcceptRole);
+        buttons->addButton(QStringLiteral("Cancelar"), QDialogButtonBox::RejectRole);
+        m_continue->setObjectName(QStringLiteral("Primary"));
+        m_error = new QLabel(this);
+        m_error->setObjectName(QStringLiteral("LoginError"));
+        m_error->setWordWrap(true);
+        m_error->hide();
+        layout->insertWidget(layout->count() - 1, m_error);
+        connect(m_continue, &QPushButton::clicked, this, [this] {
+            QString error;
+            if (provider() == 0) {
+                static const QRegularExpression clientIdPattern(
+                    QStringLiteral("^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$"));
+                if (m_microsoftClientRequired && !clientIdPattern.match(clientId()).hasMatch())
+                    error = QStringLiteral("Escribe un ID de cliente GUID válido de Microsoft. No es tu correo ni tu contraseña.");
+            } else if (username().isEmpty() || password().isEmpty()) {
+                error = QStringLiteral("Completa el correo o usuario y la contraseña de Ely.by.");
+            }
+            m_error->setText(error);
+            m_error->setVisible(!error.isEmpty());
+            if (error.isEmpty())
+                accept();
+        });
+        connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
+        layout->addWidget(buttons);
+        connect(m_tabs, &QTabWidget::currentChanged, this, [this] {
+            m_continue->setText(m_tabs->currentIndex() == 0
+                ? QStringLiteral("Continuar con Microsoft")
+                : QStringLiteral("Iniciar sesión con Ely.by"));
+        });
+        m_continue->setText(QStringLiteral("Continuar con Microsoft"));
+    }
+
+    int provider() const { return m_tabs->currentIndex(); }
+    QString clientId() const { return m_clientId->text().trimmed(); }
+    QString username() const { return m_username->text().trimmed(); }
+    QString password() const { return m_password->text(); }
+
+private:
+    QTabWidget* m_tabs{nullptr};
+    QLineEdit* m_clientId{nullptr};
+    QLineEdit* m_username{nullptr};
+    QLineEdit* m_password{nullptr};
+    QPushButton* m_continue{nullptr};
+    QLabel* m_error{nullptr};
+    bool m_microsoftClientRequired{true};
+};
+
+void showQuickTutorial(QWidget* parent) {
+    QDialog dialog(parent);
+    dialog.setWindowTitle(QStringLiteral("Tutorial rápido de CUB3"));
+    dialog.setMinimumWidth(480);
+    auto* layout = new QVBoxLayout(&dialog);
+    layout->setContentsMargins(24, 22, 24, 20);
+    layout->setSpacing(14);
+    auto* title = new QLabel(QStringLiteral("Tu primera partida"), &dialog);
+    title->setObjectName(QStringLiteral("Title"));
+    layout->addWidget(title);
+
+    auto* pages = new QStackedWidget(&dialog);
+    const QStringList headings{
+        QStringLiteral("1. Conecta tu cuenta"),
+        QStringLiteral("2. Elige una versión"),
+        QStringLiteral("3. Prepara Java"),
+        QStringLiteral("4. Juega y administra tus perfiles")
+    };
+    const QStringList descriptions{
+        QStringLiteral("Pulsa el botón de cuenta en Inicio. Microsoft abre su autorización en el navegador; Ely.by solicita tus credenciales en el formulario seguro de CUB3."),
+        QStringLiteral("En Inicio, escribe para filtrar el selector de versiones y elige una versión de Minecraft disponible."),
+        QStringLiteral("En Ajustes puedes configurar la ruta de Java, memoria, resolución y carpeta de juego. La versión de Java depende de Minecraft."),
+        QStringLiteral("Pulsa Jugar para iniciar. Perfiles muestra tus instalaciones locales y Descargas el progreso de las tareas. Haz copias de seguridad de tus mundos.")
+    };
+    for (int i = 0; i < headings.size(); ++i) {
+        auto* page = new QWidget(pages);
+        auto* pageLayout = new QVBoxLayout(page);
+        pageLayout->setContentsMargins(8, 12, 8, 18);
+        auto* stepTitle = new QLabel(headings.at(i), page);
+        stepTitle->setObjectName(QStringLiteral("Heading"));
+        auto* description = new QLabel(descriptions.at(i), page);
+        description->setObjectName(QStringLiteral("Secondary"));
+        description->setWordWrap(true);
+        description->setMinimumHeight(90);
+        pageLayout->addWidget(stepTitle);
+        pageLayout->addWidget(description);
+        pageLayout->addStretch(1);
+        pages->addWidget(page);
+    }
+    layout->addWidget(pages);
+    auto* footer = new QHBoxLayout();
+    auto* progress = new QLabel(&dialog);
+    progress->setObjectName(QStringLiteral("Secondary"));
+    auto* back = new QPushButton(QStringLiteral("Atrás"), &dialog);
+    auto* next = new QPushButton(QStringLiteral("Siguiente"), &dialog);
+    auto* finish = new QPushButton(QStringLiteral("Terminar"), &dialog);
+    finish->setObjectName(QStringLiteral("Primary"));
+    finish->hide();
+    footer->addWidget(progress);
+    footer->addStretch(1);
+    footer->addWidget(back);
+    footer->addWidget(next);
+    footer->addWidget(finish);
+    layout->addLayout(footer);
+    const auto update = [=](int index) {
+        pages->setCurrentIndex(index);
+        progress->setText(QStringLiteral("%1 de %2").arg(index + 1).arg(pages->count()));
+        back->setEnabled(index > 0);
+        next->setVisible(index + 1 < pages->count());
+        finish->setVisible(index + 1 == pages->count());
+    };
+    connect(back, &QPushButton::clicked, &dialog, [=] { update(qMax(0, pages->currentIndex() - 1)); });
+    connect(next, &QPushButton::clicked, &dialog, [=] { update(qMin(pages->count() - 1, pages->currentIndex() + 1)); });
+    connect(finish, &QPushButton::clicked, &dialog, &QDialog::accept);
+    update(0);
+    dialog.exec();
+}
+
 } // namespace
 
 MainWindow::MainWindow(QWidget* parent)
@@ -252,6 +448,16 @@ void MainWindow::setupUi() {
     sidebarLayout->addWidget(m_btnMods);
     sidebarLayout->addWidget(m_btnSettings);
     sidebarLayout->addStretch();
+
+    auto* tutorialButton = new QPushButton(QStringLiteral("?   Guía rápida"), m_sidebar);
+    tutorialButton->setObjectName(QStringLiteral("SecondaryButton"));
+    tutorialButton->setCursor(Qt::PointingHandCursor);
+    tutorialButton->setToolTip(QStringLiteral("Recorrido guiado para configurar y empezar a jugar"));
+    connect(tutorialButton, &QPushButton::clicked, this, [this] {
+        showQuickTutorial(this);
+    });
+    sidebarLayout->addWidget(tutorialButton);
+    sidebarLayout->addSpacing(theme::sizes::kSpacingSmall);
 
     // Status indicator at the bottom
     auto* statusLabel = new QLabel(QStringLiteral("●  Aplicación lista"), m_sidebar);
@@ -349,10 +555,8 @@ void MainWindow::onAccountRequested() {
     m_auth = &manager;
 
     QMenu menu(this);
-    QAction* microsoftAction =
-        menu.addAction(QStringLiteral("Iniciar sesión con Microsoft"));
-    QAction* elybyAction =
-        menu.addAction(QStringLiteral("Iniciar sesión con Ely.by"));
+    QAction* signInAction = menu.addAction(QStringLiteral("Conectar cuenta…"));
+    QAction* tutorialAction = menu.addAction(QStringLiteral("Tutorial rápido"));
     QAction* logoutAction = nullptr;
     if (m_auth->isLoggedIn()) {
         menu.addSeparator();
@@ -360,59 +564,71 @@ void MainWindow::onAccountRequested() {
     }
 
     QAction* chosen = menu.exec(QCursor::pos());
-    if (chosen == microsoftAction) {
-        QSettings settings;
-        QString clientId = qEnvironmentVariable("CUB3_MICROSOFT_CLIENT_ID").trimmed();
-        if (clientId.isEmpty())
-            clientId = settings.value(QStringLiteral("auth/microsoftClientId")).toString().trimmed();
+    if (chosen == tutorialAction) {
+        showQuickTutorial(this);
+        return;
+    }
+    if (chosen == logoutAction) {
+        m_auth->logout();
+        return;
+    }
+    if (chosen != signInAction)
+        return;
+
+    QSettings settings;
+    QString configuredClientId = qEnvironmentVariable("CUB3_MICROSOFT_CLIENT_ID").trimmed();
+    if (configuredClientId.isEmpty())
+        configuredClientId = settings.value(QStringLiteral("auth/microsoftClientId")).toString().trimmed();
+    const bool microsoftClientRequired = configuredClientId.isEmpty()
+        || configuredClientId == cub3::core::meta::kMicrosoftClientId.toString();
+    LoginDialog dialog(microsoftClientRequired, this);
+    if (!microsoftClientRequired)
+        dialog.setProperty("configuredMicrosoftClientId", configuredClientId);
+    if (dialog.exec() != QDialog::Accepted)
+        return;
+
+    if (dialog.provider() == 0) {
+        QString clientId = dialog.property("configuredMicrosoftClientId").toString();
         if (clientId.isEmpty()
             || clientId == cub3::core::meta::kMicrosoftClientId.toString()) {
-            bool accepted = false;
-            clientId = QInputDialog::getText(
-                this, QStringLiteral("Configurar Microsoft"),
-                QStringLiteral("ID de cliente de tu aplicación pública de Microsoft:"),
-                QLineEdit::Normal, QString(), &accepted).trimmed();
-            if (!accepted)
-                return;
+            clientId = dialog.clientId();
             static const QRegularExpression clientIdPattern(
                 QStringLiteral("^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$"));
             if (!clientIdPattern.match(clientId).hasMatch()) {
                 QMessageBox::warning(
                     this, QStringLiteral("ID no válido"),
-                    QStringLiteral("El ID debe tener el formato GUID de una aplicación de Microsoft."));
+                    QStringLiteral("Escribe el GUID de una aplicación pública de Microsoft. No es tu correo ni tu contraseña."));
                 return;
             }
             settings.setValue(QStringLiteral("auth/microsoftClientId"), clientId);
             qputenv("CUB3_MICROSOFT_CLIENT_ID", clientId.toUtf8());
         }
-        m_auth->loginMicrosoft({}, [this](const QString& error) {
-            QMessageBox::warning(this, QStringLiteral("Error de inicio de sesión"),
-                                 error);
+        m_dashboard->setStatus(QStringLiteral("Esperando autorización de Microsoft…"));
+        m_auth->loginMicrosoft([this](const auth::Account&) {
+            m_dashboard->setStatus(QStringLiteral("Cuenta conectada"));
+        }, [this](const QString& error) {
+            m_dashboard->setStatus(QStringLiteral("No se pudo conectar la cuenta"));
+            QMessageBox::warning(this, QStringLiteral("No se pudo iniciar sesión"), error);
         });
-    } else if (chosen == elybyAction) {
-        bool accepted = false;
-        const QString username = QInputDialog::getText(
-            this, QStringLiteral("Iniciar sesión con Ely.by"),
-            QStringLiteral("Correo o nombre de usuario:"), QLineEdit::Normal,
-            QString(), &accepted).trimmed();
-        if (!accepted || username.isEmpty())
-            return;
-
-        const QString password = QInputDialog::getText(
-            this, QStringLiteral("Iniciar sesión con Ely.by"),
-            QStringLiteral("Contraseña:"), QLineEdit::Password,
-            QString(), &accepted);
-        if (!accepted || password.isEmpty())
-            return;
-
-        m_auth->loginElyby(username, password, {},
-            [this](const QString& error) {
-                QMessageBox::warning(this, QStringLiteral("Error de inicio de sesión"),
-                                     error);
-            });
-    } else if (chosen == logoutAction) {
-        m_auth->logout();
+        return;
     }
+
+    const QString username = dialog.username();
+    const QString password = dialog.password();
+    if (username.isEmpty() || password.isEmpty()) {
+        QMessageBox::information(
+            this, QStringLiteral("Faltan datos"),
+            QStringLiteral("Escribe tu correo o usuario y la contraseña de Ely.by."));
+        return;
+    }
+    m_dashboard->setStatus(QStringLiteral("Conectando con Ely.by…"));
+    m_auth->loginElyby(username, password,
+        [this](const auth::Account&) {
+            m_dashboard->setStatus(QStringLiteral("Cuenta conectada"));
+        }, [this](const QString& error) {
+            m_dashboard->setStatus(QStringLiteral("No se pudo conectar la cuenta"));
+            QMessageBox::warning(this, QStringLiteral("No se pudo iniciar sesión"), error);
+        });
 }
 
 void MainWindow::onPlayRequested(const QString& versionId) {
@@ -485,9 +701,10 @@ void MainWindow::setApp(application::Cub3App* app) {
         auto* dialog = new QMessageBox(
             QMessageBox::Information,
             QStringLiteral("Autoriza Microsoft"),
-            QStringLiteral("Código: %1\n\nSe abrió %2 en el navegador para completar el acceso.")
+            QStringLiteral("Código para Microsoft: %1\n\nEl navegador se abrió en %2. Introduce el código allí y confirma el acceso; no compartas el código con nadie.")
                 .arg(code, uri),
             QMessageBox::Ok, this);
+        dialog->setTextInteractionFlags(Qt::TextSelectableByMouse | Qt::TextSelectableByKeyboard);
         dialog->setAttribute(Qt::WA_DeleteOnClose);
         dialog->open();
     });
