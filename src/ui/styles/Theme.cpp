@@ -40,6 +40,87 @@ QMainWindow {
     background-color: {{bgSecondary}};
     border-bottom: 1px solid {{border}};
 }
+#WindowTitleBar QToolButton {
+    min-width: 36px;
+    min-height: 28px;
+}
+#SidebarLogo {
+    color: {{textPrimary}};
+    letter-spacing: 1px;
+}
+#SidebarSubtitle {
+    color: {{accent}};
+}
+QLabel#SidebarFooter {
+    background-color: {{bgTertiary}};
+    border: 1px solid {{border}};
+    border-radius: 10px;
+    color: {{textSecondary}};
+    padding: 12px 13px;
+}
+QLabel#FooterStatus { color: {{textSecondary}}; }
+QLabel#FooterCaption { color: {{textDisabled}}; font-weight: 700; }
+QToolButton#AccountBadge {
+    border-radius: 10px;
+    padding: 10px 16px;
+}
+QToolButton#NewsNavButton {
+    min-width: 28px;
+    max-width: 28px;
+    min-height: 28px;
+    max-height: 28px;
+    border-radius: 9px;
+}
+QPushButton#NewsLinkButton {
+    padding: 7px 0;
+    font-size: 13px;
+}
+QLabel#FeatureMeta {
+    font-size: 11px;
+    font-weight: 700;
+}
+QLabel#CardCaption {
+    color: {{textSecondary}};
+}
+QWidget#SunsetHero {
+    border: 1px solid {{borderHover}};
+}
+QLineEdit#SearchField {
+    min-height: 24px;
+    border-radius: 11px;
+    padding-left: 14px;
+}
+QComboBox#VersionSelector {
+    min-height: 30px;
+    font-size: 14px;
+    font-weight: 700;
+}
+QComboBox#VersionSelector {
+    border-radius: 10px;
+    padding: 10px 14px;
+}
+QLabel#HeroTitle {
+    font-size: 54px;
+    letter-spacing: 2px;
+}
+QLabel#ProfileCount {
+    color: {{accent}};
+    font-size: 46px;
+}
+QLabel#JavaStatus {
+    background-color: {{bgTertiary}};
+    border-radius: 7px;
+    padding: 5px 8px;
+}
+QLabel#JavaStatus[available="true"] {
+    background-color: rgba(72, 201, 112, 0.12);
+}
+QMenu::item:selected {
+    color: {{accentHover}};
+}
+QLineEdit:focus, QSpinBox:focus, QDoubleSpinBox:focus, QComboBox:focus {
+    border: 1px solid {{accent}};
+}
 QLabel#WindowTitleText {
     background: transparent;
     color: {{textSecondary}};
@@ -361,11 +442,11 @@ QLabel#FooterCaption { letter-spacing: 1px; }
 /* ===== Play button ===== */
 QPushButton#PlayButton {
     background-color: {{accent}};
-    color: #FFFFFF;
+    color: #092017;
     border: none;
-    border-radius: 10px;
-    font-size: 18px;
-    font-weight: 700;
+    border-radius: 12px;
+    font-size: 17px;
+    font-weight: 800;
     padding: 16px 52px;
 }
 QPushButton#PlayButton:hover { background-color: {{accentHover}}; }
@@ -519,6 +600,99 @@ QListView {
 }
 QListView::item { padding: 8px 12px; border-radius: 4px; }
 QListView::item:selected { background-color: {{bgRaised}}; }
+
+/* ===== Refined CUB3 surfaces and interaction states ===== */
+#Sidebar {
+    border-right: 1px solid {{border}};
+}
+QPushButton#SidebarButton {
+    min-height: 42px;
+    padding-left: 14px;
+    margin: 3px 10px;
+    border-radius: 9px;
+    font-weight: 600;
+}
+QPushButton#SidebarButton:checked {
+    background-color: {{bgRaised}};
+    border: 1px solid {{borderHover}};
+}
+QFrame#Card, QFrame#InfoCard {
+    background-color: {{bgSecondary}};
+    border: 1px solid {{border}};
+    border-radius: 15px;
+}
+QFrame#Card:hover, QFrame#InfoCard:hover {
+    border-color: {{borderHover}};
+}
+QLabel#PageTitle {
+    font-size: 28px;
+    font-weight: 800;
+    padding: 2px 0 5px;
+}
+QLabel#PageSubtitle {
+    color: {{textSecondary}};
+    font-size: 13px;
+    padding-bottom: 10px;
+}
+QPushButton#Primary {
+    border-radius: 9px;
+    font-weight: 700;
+    padding: 10px 18px;
+}
+QPushButton#SecondaryButton {
+    border-radius: 9px;
+    font-weight: 600;
+    padding: 9px 14px;
+}
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    min-height: 22px;
+    border-radius: 9px;
+    padding: 9px 12px;
+    selection-background-color: {{accentPressed}};
+}
+QLineEdit:hover, QSpinBox:hover, QComboBox:hover {
+    border-color: {{borderHover}};
+}
+QListWidget#InstanceList, QListWidget {
+    background-color: {{bgSecondary}};
+    alternate-background-color: {{bgTertiary}};
+    border: 1px solid {{border}};
+    border-radius: 12px;
+    padding: 7px;
+    outline: none;
+}
+QListWidget::item, QListView::item {
+    min-height: 34px;
+    padding: 8px 11px;
+    border: 1px solid transparent;
+    border-radius: 8px;
+}
+QListWidget::item:hover, QListView::item:hover {
+    background-color: {{bgTertiary}};
+}
+QListWidget::item:selected, QListView::item:selected {
+    background-color: {{bgRaised}};
+    border-color: {{borderHover}};
+    color: {{textPrimary}};
+}
+QGroupBox#SettingsGroup {
+    background-color: {{bgSecondary}};
+    border-color: {{border}};
+    border-radius: 14px;
+    padding: 20px 16px 14px;
+}
+QGroupBox#SettingsGroup:hover { border-color: {{borderHover}}; }
+QProgressBar {
+    min-height: 12px;
+    border: 1px solid {{border}};
+    border-radius: 6px;
+    background-color: {{bgTertiary}};
+}
+QProgressBar::chunk {
+    border-radius: 5px;
+}
+QScrollBar:vertical { width: 9px; }
+QScrollBar::handle:vertical { min-height: 36px; }
 
 /* ===== Checkboxes ===== */
 QCheckBox { color: {{textPrimary}}; spacing: 8px; }

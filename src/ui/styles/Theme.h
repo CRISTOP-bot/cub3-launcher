@@ -15,25 +15,25 @@ namespace theme {
 
 namespace colors {
     // Backgrounds (dark, layered)
-    inline const QColor bgPrimary     {0x10, 0x13, 0x20};  // Main window background
-    inline const QColor bgSecondary   {0x16, 0x1B, 0x2A};  // Sidebar, cards
-    inline const QColor bgTertiary    {0x1C, 0x23, 0x34};  // Hover, elevated
-    inline const QColor bgRaised       {0x25, 0x2E, 0x41};  // Buttons, active items
+    inline const QColor bgPrimary     {0x0D, 0x13, 0x18};  // Main canvas
+    inline const QColor bgSecondary   {0x13, 0x1C, 0x22};  // Sidebar and cards
+    inline const QColor bgTertiary    {0x1A, 0x26, 0x2B};  // Hover surfaces
+    inline const QColor bgRaised       {0x23, 0x32, 0x36};  // Active controls
 
     // Borders / dividers
-    inline const QColor border         {0x2A, 0x32, 0x45};
-    inline const QColor borderHover     {0x3B, 0x48, 0x5D};
+    inline const QColor border         {0x29, 0x3A, 0x3D};
+    inline const QColor borderHover     {0x3A, 0x55, 0x50};
 
     // Text
-    inline const QColor textPrimary    {0xF0, 0xF0, 0xF5};
-    inline const QColor textSecondary   {0x9A, 0xA6, 0xBA};
-    inline const QColor textDisabled    {0x65, 0x70, 0x83};
+    inline const QColor textPrimary    {0xF1, 0xF5, 0xF2};
+    inline const QColor textSecondary   {0xA9, 0xB9, 0xB3};
+    inline const QColor textDisabled    {0x72, 0x83, 0x7D};
 
-    // Accents — vivid green
-    inline const QColor accent          {0x35, 0xB9, 0x55};
-    inline const QColor accentHover     {0x43, 0xCB, 0x64};
-    inline const QColor accentPressed   {0x2A, 0x9E, 0x49};
-    inline const QColor accentDim       {0x35, 0xB9, 0x55, 0x30};  // 19% alpha
+    // Restrained CUB3 green accent
+    inline const QColor accent          {0x48, 0xC9, 0x70};
+    inline const QColor accentHover     {0x67, 0xDB, 0x88};
+    inline const QColor accentPressed   {0x35, 0xA9, 0x5B};
+    inline const QColor accentDim       {0x48, 0xC9, 0x70, 0x30};
 
     // Status
     inline const QColor success         {0x3A, 0xD1, 0x5E};
