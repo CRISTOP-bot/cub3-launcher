@@ -1,8 +1,9 @@
 # Contribuir a CUB3 Launcher
 
 Gracias por ayudar a mejorar CUB3. Los cambios de código, correcciones,
-documentación, recursos y sitio web se hacen en la rama **`dev`**. No trabajes
-directamente en `main`.
+documentación, recursos y sitio web deben integrarse en la rama **`dev`**. Está
+protegida: los commits directos están bloqueados y cada cambio se entrega por
+un pull request hacia `dev`.
 
 ## Preparar el entorno
 
@@ -11,6 +12,7 @@ git clone https://github.com/CRISTOP-bot/cub3-launcher.git
 cd cub3-launcher
 git switch dev
 git pull --ff-only origin dev
+git switch -c tipo/descripcion-corta
 ```
 
 Consulta los requisitos y pasos de compilación en el [README](README.md).
@@ -43,10 +45,11 @@ Improve mobile download layout
 
 ## Integración
 
-Publica el trabajo en `dev`. Si abres una solicitud de integración, configura
-**`dev` como rama destino** y explica el cambio, cómo se verificó y cualquier
-limitación conocida. `main` se mantiene estable y solo recibe una promoción de
-versión aprobada por el mantenedor.
+Publica tu rama de trabajo y abre una solicitud de integración con
+**`dev` como rama destino**. Explica el cambio, cómo se verificó y cualquier
+limitación conocida. Resuelve los comentarios antes de integrar. `main` se
+mantiene estable y solo recibe una promoción de versión aprobada por el
+mantenedor.
 
 ## Reportar errores
 

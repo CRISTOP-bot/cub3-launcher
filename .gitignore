@@ -8,9 +8,17 @@ compile_commands.json
 Makefile
 
 # Local editor state
-.vscode/
+.vscode/*
+!.vscode/
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
 .idea/
 *.user
+
+# Private agent configuration
+.claude/settings.local.json
+.codex/config.local.toml
 
 # Local configuration and runtime data
 .env
