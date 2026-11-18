@@ -36,6 +36,15 @@ public:
             && url.password().isEmpty();
     }
 
+    static constexpr qint64 maxBufferedResponseBytes = 32LL * 1024 * 1024;
+
+    [[nodiscard]] static bool responseChunkWithinLimit(qint64 currentBytes,
+                                                        qint64 incomingBytes) {
+        return currentBytes >= 0 && incomingBytes >= 0
+            && incomingBytes <= maxBufferedResponseBytes
+            && currentBytes <= maxBufferedResponseBytes - incomingBytes;
+    }
+
     /// GET request.
     /// onComplete: called with the response body and HTTP status.
     void get(const QUrl& url,

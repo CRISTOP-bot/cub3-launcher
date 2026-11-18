@@ -18,6 +18,20 @@ private slots:
         QVERIFY(!cub3::network::HttpClient::isSecureUrl(QUrl()));
     }
 
+    void boundsBufferedResponseSize() {
+        using cub3::network::HttpClient;
+        QVERIFY(HttpClient::responseChunkWithinLimit(0, 0));
+        QVERIFY(HttpClient::responseChunkWithinLimit(
+            HttpClient::maxBufferedResponseBytes - 1, 1));
+        QVERIFY(HttpClient::responseChunkWithinLimit(
+            0, HttpClient::maxBufferedResponseBytes));
+        QVERIFY(!HttpClient::responseChunkWithinLimit(
+            HttpClient::maxBufferedResponseBytes, 1));
+        QVERIFY(!HttpClient::responseChunkWithinLimit(
+            0, HttpClient::maxBufferedResponseBytes + 1));
+        QVERIFY(!HttpClient::responseChunkWithinLimit(-1, 1));
+        QVERIFY(!HttpClient::responseChunkWithinLimit(1, -1));
+    }
 };
 
 QTEST_APPLESS_MAIN(NetworkSecurityTests)

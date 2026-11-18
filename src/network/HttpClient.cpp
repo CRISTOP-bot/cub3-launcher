@@ -8,8 +8,31 @@
 #include <QFile>
 #include <QFileInfo>
 #include <QDir>
+#include <memory>
 
 namespace {
+struct BufferedResponse {
+    QByteArray body;
+    bool tooLarge{false};
+};
+
+void collectResponseData(QNetworkReply* reply,
+                         const std::shared_ptr<BufferedResponse>& response) {
+    if (response->tooLarge)
+        return;
+    const qint64 remaining = cub3::network::HttpClient::maxBufferedResponseBytes
+        - response->body.size();
+    const QByteArray chunk = reply->read(remaining + 1);
+    if (!cub3::network::HttpClient::responseChunkWithinLimit(
+            response->body.size(), chunk.size())) {
+        response->tooLarge = true;
+        response->body.clear();
+        reply->abort();
+        return;
+    }
+    response->body.append(chunk);
+}
+
 QString safeUrlForLog(const QUrl& url) {
     QUrl safe(url);
     safe.setUserInfo(QString());
@@ -74,19 +97,26 @@ void HttpClient::get(const QUrl& url,
                          QNetworkRequest::NoLessSafeRedirectPolicy);
 
     auto* reply = m_nam.get(request);
+    reply->setReadBufferSize(1024 * 1024);
     setTimeoutTimer(reply);
+    auto response = std::make_shared<BufferedResponse>();
+    connect(reply, &QIODevice::readyRead, reply,
+            [reply, response] { collectResponseData(reply, response); });
 
     connect(reply, &QNetworkReply::finished, this,
-            [reply, onComplete]() {
-        QByteArray body;
-        const int status = reply->attribute(
+            [reply, response, onComplete]() {
+        collectResponseData(reply, response);
+        int status = reply->attribute(
             QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        body = reply->readAll();
-        if (reply->error() != QNetworkReply::NoError) {
+        if (response->tooLarge) {
+            status = 0;
+            CUB3_WARN(lcNetwork) << "GET response exceeded size limit:"
+                                  << safeUrlForLog(reply->url());
+        } else if (reply->error() != QNetworkReply::NoError) {
             CUB3_WARN(lcNetwork) << "GET failed:" << safeUrlForLog(reply->url())
                                   << "error:" << reply->error();
         }
-        if (onComplete) onComplete(body, status);
+        if (onComplete) onComplete(response->body, status);
         reply->deleteLater();
     });
 }
@@ -117,19 +147,26 @@ void HttpClient::post(const QUrl& url,
                          QNetworkRequest::ManualRedirectPolicy);
 
     auto* reply = m_nam.post(request, body);
+    reply->setReadBufferSize(1024 * 1024);
     setTimeoutTimer(reply);
+    auto response = std::make_shared<BufferedResponse>();
+    connect(reply, &QIODevice::readyRead, reply,
+            [reply, response] { collectResponseData(reply, response); });
 
     connect(reply, &QNetworkReply::finished, this,
-            [reply, onComplete]() {
-        QByteArray responseBody;
-        const int status = reply->attribute(
+            [reply, response, onComplete]() {
+        collectResponseData(reply, response);
+        int status = reply->attribute(
             QNetworkRequest::HttpStatusCodeAttribute).toInt();
-        responseBody = reply->readAll();
-        if (reply->error() != QNetworkReply::NoError) {
+        if (response->tooLarge) {
+            status = 0;
+            CUB3_WARN(lcNetwork) << "POST response exceeded size limit:"
+                                  << safeUrlForLog(reply->url());
+        } else if (reply->error() != QNetworkReply::NoError) {
             CUB3_WARN(lcNetwork) << "POST failed:" << safeUrlForLog(reply->url())
                                   << "error:" << reply->error();
         }
-        if (onComplete) onComplete(responseBody, status);
+        if (onComplete) onComplete(response->body, status);
         reply->deleteLater();
     });
 }
@@ -155,25 +192,32 @@ void HttpClient::getConditional(const QUrl& url,
                          QNetworkRequest::NoLessSafeRedirectPolicy);
 
     auto* reply = m_nam.get(request);
+    reply->setReadBufferSize(1024 * 1024);
     setTimeoutTimer(reply);
+    auto response = std::make_shared<BufferedResponse>();
+    connect(reply, &QIODevice::readyRead, reply,
+            [reply, response] { collectResponseData(reply, response); });
 
     connect(reply, &QNetworkReply::finished, this,
-            [reply, onComplete]() {
-        QByteArray body;
-        int status = 0;
+            [reply, response, onComplete]() {
+        collectResponseData(reply, response);
+        int status = reply->attribute(
+            QNetworkRequest::HttpStatusCodeAttribute).toInt();
         QHash<QString, QString> responseHeaders;
 
-        status = reply->attribute(
-            QNetworkRequest::HttpStatusCodeAttribute).toInt();
         for (const auto& header : reply->rawHeaderList())
             responseHeaders[QString::fromUtf8(header)] =
                 QString::fromUtf8(reply->rawHeader(header));
 
-        if (reply->error() != QNetworkReply::NoError && status != 304)
-            CUB3_WARN(lcNetwork) << "Conditional GET failed:" << safeUrlForLog(reply->url());
-        body = reply->readAll();
-
-        if (onComplete) onComplete(body, status, responseHeaders);
+        if (response->tooLarge) {
+            status = 0;
+            CUB3_WARN(lcNetwork) << "Conditional GET response exceeded size limit:"
+                                  << safeUrlForLog(reply->url());
+        } else if (reply->error() != QNetworkReply::NoError && status != 304) {
+            CUB3_WARN(lcNetwork) << "Conditional GET failed:"
+                                  << safeUrlForLog(reply->url());
+        }
+        if (onComplete) onComplete(response->body, status, responseHeaders);
         reply->deleteLater();
     });
 }
