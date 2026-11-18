@@ -82,7 +82,7 @@ h2 em { color: var(--green); font-style: normal; }
 .linux-icon { background: rgba(89,223,121,.13); }
 .windows-icon { background: rgba(75,142,239,.14); }
 .mac-icon { background: rgba(181,197,220,.12); }
-.platform-icon img { width: 28px; height: 28px; }
+.platform-icon img { width: 34px; height: 34px; object-fit: contain; }
 .platform-copy { display: flex; flex-direction: column; gap: 5px; align-self: center; }
 .platform-copy strong { font-size: 15px; }
 .platform-copy small { color: #91a0aa; font-size: 10px; }
