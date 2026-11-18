@@ -2,7 +2,7 @@ name: Publicar sitio
 
 on:
   push:
-    branches: [main]
+    branches: [dev]
     paths:
       - "site/**"
       - "assets/images/**"
