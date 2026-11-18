@@ -32,7 +32,7 @@ jobs:
         run: |
           mkdir -p _site/assets/logos
           cp site/index.html site/styles.css _site/
-          cp site/assets/cherry-grove.png _site/assets/
+          cp site/assets/*.png site/assets/*.svg _site/assets/
           cp site/assets/logos/*.svg _site/assets/logos/
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
