@@ -3,6 +3,11 @@
 No publiques contraseñas, tokens OAuth, credenciales de Microsoft, archivos de
 configuración privados ni registros que contengan datos personales.
 
+Las peticiones remotas de la aplicación deben usar HTTPS; se rechazan URLs con
+credenciales incorporadas y los registros de red omiten consultas y fragmentos.
+Las descargas se escriben en streaming con un búfer acotado y, si el manifiesto
+indica el tamaño esperado, se detienen antes de aceptar datos que lo excedan.
+
 Para reportar una vulnerabilidad, usa la opción **Report a vulnerability** de
 la pestaña Security de GitHub si está habilitada para este repositorio. Si no
 está disponible, contacta al mantenedor en privado antes de publicar detalles

@@ -45,11 +45,9 @@ QString DownloadEngine::submit(const DownloadJob& job) {
         j.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
     j.maxRetries = std::max(j.maxRetries, 0);
 
-    const QString scheme = j.url.scheme().toLower();
-    if (j.targetPath.isEmpty() || !j.url.isValid()
-        || (scheme != QStringLiteral("http") && scheme != QStringLiteral("https"))) {
+    if (j.targetPath.isEmpty() || !HttpClient::isSecureUrl(j.url)) {
         CUB3_WARN(lcDownloads) << "Rejected invalid download job:" << j.id
-                               << j.url << j.targetPath;
+                               << j.url.host() << j.targetPath;
         return {};
     }
 
@@ -138,8 +136,7 @@ void DownloadEngine::submitBatch(const QList<DownloadJob>& jobs) {
         if (j.id.isEmpty())
             j.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
         const QString scheme = j.url.scheme().toLower();
-        if (j.targetPath.isEmpty() || !j.url.isValid()
-            || (scheme != QStringLiteral("http") && scheme != QStringLiteral("https"))) {
+        if (j.targetPath.isEmpty() || !HttpClient::isSecureUrl(j.url)) {
             rejected.append({j.id, QStringLiteral("Invalid download URL or target path")});
             continue;
         }
@@ -235,7 +232,7 @@ void DownloadEngine::processQueue() {
 }
 
 void DownloadEngine::startJob(const DownloadJob& job) {
-    CUB3_INFO(lcDownloads) << "Starting download:" << job.url
+    CUB3_INFO(lcDownloads) << "Starting download from host:" << job.url.host()
                            << "->" << job.targetPath;
 
     QNetworkRequest request(job.url);
@@ -267,6 +264,7 @@ void DownloadEngine::startJob(const DownloadJob& job) {
     m_active[job.id] = active;
 
     QNetworkReply* reply = m_http->getManager().get(request);
+    reply->setReadBufferSize(1024 * 1024);
     m_active[job.id].reply = reply;
     locker.unlock();
 
@@ -279,16 +277,27 @@ void DownloadEngine::startJob(const DownloadJob& job) {
     });
     timeout->start();
 
-    // Throttle progress updates to 4 per second
+    // Throttle progress updates to 4 per second and enforce declared size
+    // while streaming so a bad or compromised manifest cannot fill the disk.
     auto lastProgress = std::make_shared<qint64>(0);
+    auto bytesWritten = std::make_shared<qint64>(0);
 
-    connect(reply, &QIODevice::readyRead, this, [reply, file, timeout]() {
+    connect(reply, &QIODevice::readyRead, this,
+            [reply, file, timeout, job, bytesWritten]() {
         timeout->start();
         const QByteArray data = reply->readAll();
+        if (job.expectedSize > 0
+            && (*bytesWritten > job.expectedSize - data.size())) {
+            reply->setProperty("cub3SizeExceeded", true);
+            reply->abort();
+            return;
+        }
         if (file->write(data) != data.size()) {
             reply->setProperty("cub3DiskWriteFailed", true);
             reply->abort();
+            return;
         }
+        *bytesWritten += data.size();
     });
 
     connect(reply, &QNetworkReply::downloadProgress, this,
@@ -320,6 +329,7 @@ void DownloadEngine::startJob(const DownloadJob& job) {
             [this, reply, file, job, tempPath, timeout]() {
         timeout->stop();
         bool writeFailed = reply->property("cub3DiskWriteFailed").toBool();
+        const bool sizeExceeded = reply->property("cub3SizeExceeded").toBool();
         if (!file->flush() || file->error() != QFile::NoError)
             writeFailed = true;
         file->close();
@@ -334,6 +344,14 @@ void DownloadEngine::startJob(const DownloadJob& job) {
         if (cancelled) {
             QFile::remove(tempPath);
             onJobDone(job.id, DownloadStatus::Cancelled, {});
+            reply->deleteLater();
+            return;
+        }
+
+        if (sizeExceeded) {
+            QFile::remove(tempPath);
+            onJobDone(job.id, DownloadStatus::Failed,
+                      QStringLiteral("Download exceeded the expected size"));
             reply->deleteLater();
             return;
         }

@@ -27,6 +27,15 @@ class HttpClient : public QObject {
 public:
     explicit HttpClient(QObject* parent = nullptr);
 
+    /// Remote endpoints must use HTTPS and must not embed credentials in URLs.
+    [[nodiscard]] static bool isSecureUrl(const QUrl& url) {
+        return url.isValid()
+            && url.scheme().compare(QStringLiteral("https"), Qt::CaseInsensitive) == 0
+            && !url.host().isEmpty()
+            && url.userName().isEmpty()
+            && url.password().isEmpty();
+    }
+
     /// GET request.
     /// onComplete: called with the response body and HTTP status.
     void get(const QUrl& url,

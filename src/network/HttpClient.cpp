@@ -9,6 +9,25 @@
 #include <QFileInfo>
 #include <QDir>
 
+namespace {
+QString safeUrlForLog(const QUrl& url) {
+    QUrl safe(url);
+    safe.setUserInfo(QString());
+    safe.setQuery(QString());
+    safe.setFragment(QString());
+    return safe.toString(QUrl::RemoveUserInfo | QUrl::RemoveQuery
+                         | QUrl::RemoveFragment);
+}
+
+bool validateRequestUrl(const QUrl& url, const char* method) {
+    if (cub3::network::HttpClient::isSecureUrl(url))
+        return true;
+    CUB3_WARN(lcNetwork) << method << "rejected non-HTTPS or credentialed URL"
+                         << safeUrlForLog(url);
+    return false;
+}
+} // namespace
+
 namespace cub3::network {
 
 HttpClient::HttpClient(QObject* parent)
@@ -33,7 +52,7 @@ void HttpClient::setTimeoutTimer(QNetworkReply* reply) {
     timer->setSingleShot(true);
     connect(timer, &QTimer::timeout, reply, [reply] {
         if (reply->isRunning()) {
-            CUB3_WARN(lcNetwork) << "Request timed out:" << reply->url();
+            CUB3_WARN(lcNetwork) << "Request timed out:" << safeUrlForLog(reply->url());
             reply->abort();
         }
     });
@@ -45,6 +64,10 @@ void HttpClient::get(const QUrl& url,
                       std::function<void(const QByteArray&, int)> onComplete,
                       const QHash<QString, QString>& headers)
 {
+    if (!validateRequestUrl(url, "GET")) {
+        if (onComplete) onComplete({}, 0);
+        return;
+    }
     QNetworkRequest request(url);
     applyHeaders(request, headers);
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
@@ -60,7 +83,7 @@ void HttpClient::get(const QUrl& url,
             QNetworkRequest::HttpStatusCodeAttribute).toInt();
         body = reply->readAll();
         if (reply->error() != QNetworkReply::NoError) {
-            CUB3_WARN(lcNetwork) << "GET failed:" << reply->url()
+            CUB3_WARN(lcNetwork) << "GET failed:" << safeUrlForLog(reply->url())
                                   << "error:" << reply->error();
         }
         if (onComplete) onComplete(body, status);
@@ -73,6 +96,10 @@ void HttpClient::post(const QUrl& url,
                        std::function<void(const QByteArray&, int)> onComplete,
                        const QHash<QString, QString>& headers)
 {
+    if (!validateRequestUrl(url, "POST")) {
+        if (onComplete) onComplete({}, 0);
+        return;
+    }
     QNetworkRequest request(url);
     applyHeaders(request, headers);
     QString contentType = QStringLiteral("application/json");
@@ -84,8 +111,10 @@ void HttpClient::post(const QUrl& url,
         }
     }
     request.setHeader(QNetworkRequest::ContentTypeHeader, contentType);
+    // Authentication POST bodies and bearer-style headers must not be forwarded
+    // to a redirect target, even when that target also uses HTTPS.
     request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
-                         QNetworkRequest::NoLessSafeRedirectPolicy);
+                         QNetworkRequest::ManualRedirectPolicy);
 
     auto* reply = m_nam.post(request, body);
     setTimeoutTimer(reply);
@@ -97,7 +126,7 @@ void HttpClient::post(const QUrl& url,
             QNetworkRequest::HttpStatusCodeAttribute).toInt();
         responseBody = reply->readAll();
         if (reply->error() != QNetworkReply::NoError) {
-            CUB3_WARN(lcNetwork) << "POST failed:" << reply->url()
+            CUB3_WARN(lcNetwork) << "POST failed:" << safeUrlForLog(reply->url())
                                   << "error:" << reply->error();
         }
         if (onComplete) onComplete(responseBody, status);
@@ -110,6 +139,10 @@ void HttpClient::getConditional(const QUrl& url,
                                  const QString& lastModified,
                                  std::function<void(const QByteArray&, int, const QHash<QString, QString>&)> onComplete)
 {
+    if (!validateRequestUrl(url, "Conditional GET")) {
+        if (onComplete) onComplete({}, 0, {});
+        return;
+    }
     QHash<QString, QString> headers;
     if (!etag.isEmpty())
         headers["If-None-Match"] = etag;
@@ -137,7 +170,7 @@ void HttpClient::getConditional(const QUrl& url,
                 QString::fromUtf8(reply->rawHeader(header));
 
         if (reply->error() != QNetworkReply::NoError && status != 304)
-            CUB3_WARN(lcNetwork) << "Conditional GET failed:" << reply->url();
+            CUB3_WARN(lcNetwork) << "Conditional GET failed:" << safeUrlForLog(reply->url());
         body = reply->readAll();
 
         if (onComplete) onComplete(body, status, responseHeaders);
@@ -149,10 +182,18 @@ void HttpClient::downloadFile(const QUrl& url,
                                const QString& outputPath,
                                std::function<void(bool, const QString&)> onComplete)
 {
+    if (!validateRequestUrl(url, "File download")) {
+        if (onComplete)
+            onComplete(false, QStringLiteral("Only HTTPS URLs without embedded credentials are allowed"));
+        return;
+    }
     QNetworkRequest request(url);
     applyHeaders(request, {});
+    request.setAttribute(QNetworkRequest::RedirectPolicyAttribute,
+                         QNetworkRequest::NoLessSafeRedirectPolicy);
 
     auto* reply = m_nam.get(request);
+    reply->setReadBufferSize(1024 * 1024);
     setTimeoutTimer(reply);
 
     // Ensure target directory exists
@@ -199,7 +240,7 @@ void HttpClient::downloadFile(const QUrl& url,
                 onComplete(false, QStringLiteral("Could not write downloaded data to disk"));
         } else if (reply->error() != QNetworkReply::NoError
                    || status < 200 || status >= 300) {
-            CUB3_WARN(lcNetwork) << "Download failed:" << reply->url()
+            CUB3_WARN(lcNetwork) << "Download failed:" << safeUrlForLog(reply->url())
                                   << "error:" << reply->error();
             QFile::remove(tempPath);
             const QString error = reply->error() == QNetworkReply::NoError
