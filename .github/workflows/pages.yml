@@ -38,7 +38,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates git build-essential cmake qt6-base-dev \
-            libqt6sql6-sqlite qtkeychain-qt6-dev unzip
+            libqt6sql6-sqlite qtkeychain-qt6-dev unzip file
       - name: Descargar código
         uses: actions/checkout@v4
       - name: Compilar paquete .deb de desarrollo
