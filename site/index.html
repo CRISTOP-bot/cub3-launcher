@@ -28,7 +28,6 @@
     <nav aria-label="Navegación principal">
       <a href="#caracteristicas">Características</a>
       <a href="#fixes">FIXES</a>
-      <a href="#seguridad">Seguridad y rendimiento</a>
       <a href="#guia">Guía rápida</a>
       <a href="#descargas">Descargas</a>
       <a href="politica.html">Política</a>
@@ -98,8 +97,8 @@
     <section class="fixes wrap" id="fixes">
       <div class="fixes-heading">
         <span class="eyebrow muted">CAMBIOS DE ESTA ACTUALIZACIÓN</span>
-        <h2>FIXES.<br><em>Sesiones bajo control.</em></h2>
-        <p>Comparación del comportamiento anterior con los cambios incluidos en el build actual de desarrollo.</p>
+        <h2>FIXES.<br><em>Sesiones y descargas bajo control.</em></h2>
+        <p>Mejoras verificadas en el build actual de desarrollo: autenticación, red y gestión de descargas.</p>
       </div>
       <div class="fixes-list">
         <article class="fix-row">
@@ -118,23 +117,24 @@
           <span class="fix-number">04</span>
           <div><h3>Perfil Ely.by conservado</h3><p><b>Antes</b> · al renovar se reconstruía la cuenta y se podían perder datos del perfil.</p><p><b>Ahora</b> · se conservan UUID, nombre y URL de skin si el proveedor no devuelve un valor nuevo.</p></div>
         </article>
+        <article class="fix-row">
+          <span class="fix-number">05</span>
+          <div><h3>Solo conexiones HTTPS</h3><p><b>Antes</b> · algunas rutas de red aceptaban URLs HTTP o con credenciales incrustadas.</p><p><b>Ahora</b> · las solicitudes y descargas rechazan URLs que no sean HTTPS o incluyan usuario y contraseña. Los POST de autenticación no siguen redirecciones.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">06</span>
+          <div><h3>Datos privados fuera de los logs</h3><p><b>Antes</b> · los mensajes de error podían incluir la URL completa.</p><p><b>Ahora</b> · se omiten las consultas y fragmentos, que podrían contener parámetros sensibles.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">07</span>
+          <div><h3>Descargas con memoria acotada</h3><p><b>Antes</b> · el búfer de lectura de las descargas no tenía un límite explícito.</p><p><b>Ahora</b> · los archivos se escriben por partes con un búfer de hasta 1 MiB, y se detienen si superan el tamaño anunciado por el manifiesto.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">08</span>
+          <div><h3>Validación antes de instalar el archivo</h3><p><b>Antes</b> · se verificaba el tamaño al terminar la transferencia.</p><p><b>Ahora</b> · el exceso se detecta durante la descarga; el archivo temporal se comprueba por tamaño y, cuando existe, por hash antes de moverlo al destino.</p></div>
+        </article>
       </div>
-      <p class="fixes-note">Build de desarrollo: compilación Release y CTest pasan en CI. La restauración con un llavero y cuentas reales todavía requiere una prueba manual de cierre y reapertura.</p>
-    </section>
-
-    <section class="security-performance wrap" id="seguridad" aria-labelledby="security-performance-title">
-      <div class="security-heading">
-        <span class="eyebrow muted">RED Y DESCARGAS · BUILD DE DESARROLLO</span>
-        <h2 id="security-performance-title">Conexiones más seguras.<br><em>Recursos bajo control.</em></h2>
-        <p>El cliente de red y el gestor de descargas ahora aplican límites adicionales para reducir riesgos y evitar reservar archivos o respuestas completas en memoria.</p>
-      </div>
-      <div class="security-grid">
-        <article class="security-card"><span class="security-index">01 / TRANSPORTE</span><h3>HTTPS obligatorio</h3><p>Las solicitudes y descargas rechazan URLs HTTP, inválidas o con usuario y contraseña incrustados. Los POST de autenticación no siguen redirecciones; los demás flujos no aceptan degradar a una conexión menos segura.</p></article>
-        <article class="security-card"><span class="security-index">02 / PRIVACIDAD</span><h3>Menos datos en registros</h3><p>Los registros de red ya no imprimen la consulta ni el fragmento de la URL, donde podrían venir parámetros privados. Los mensajes se limitan a la dirección base del servidor.</p></article>
-        <article class="security-card"><span class="security-index">03 / MEMORIA</span><h3>Descarga en streaming</h3><p>Los datos se escriben por partes con un búfer de lectura de hasta 1 MiB, en vez de acumular el archivo completo en memoria. Si el manifiesto anuncia el tamaño, el flujo se detiene si lo supera.</p></article>
-        <article class="security-card"><span class="security-index">04 / VERIFICACIÓN</span><h3>Archivo temporal y validación</h3><p>La descarga se prepara en un archivo temporal y se comprueba su tamaño y, cuando hay hash disponible, su hash antes de colocarla en su destino final.</p></article>
-      </div>
-      <p class="security-note">Build de desarrollo · Build Release, pruebas CTest y comprobación de formato pasaron en CI. No se publica una cifra de rendimiento: el consumo y la velocidad dependen del equipo, la red y el almacenamiento.</p>
+      <p class="fixes-note">Build de desarrollo · Release, CTest y comprobación de formato pasaron en CI. La restauración de sesión con cuentas y llavero reales aún requiere una prueba manual. No se publica una cifra de rendimiento: depende del equipo, la red y el almacenamiento.</p>
     </section>
 
     <section class="ui-update wrap" aria-labelledby="ui-update-title">
