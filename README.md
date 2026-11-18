@@ -65,10 +65,11 @@ Instálalo desde un terminal para que APT resuelva las dependencias:
 sudo apt install ./cub3-launcher-dev-amd64.deb
 ```
 
-La compilación del `.deb` en Pages usa la distribución de Ubuntu del runner,
-por lo que sus dependencias Qt/glibc requieren una distribución Debian/Ubuntu
-compatible; si APT informa que una dependencia no está disponible, usa una
-versión más reciente compatible.
+El build de desarrollo del sitio se empaqueta en Debian 12 (Bookworm), no en
+Ubuntu, y valida que el paquete no dependa de bibliotecas Qt `t64` que Bookworm
+no ofrece. Está pensado para Debian 12 o posterior en amd64; otras
+distribuciones pueden no ser compatibles. Cada build lleva una revisión
+creciente para que APT lo reconozca como actualización y no como degradación.
 
 En Debian o Ubuntu, instala las dependencias principales:
 

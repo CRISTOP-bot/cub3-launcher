@@ -135,14 +135,14 @@
           <span class="eyebrow muted">ELIGE TU PLATAFORMA</span>
           <h2>Descarga CUB3.</h2>
         </div>
-        <p>Descarga el build de desarrollo más reciente para Linux. Los instaladores para Windows y macOS siguen en preparación.</p>
+        <p>Descarga el build de desarrollo más reciente para Linux x86_64. El paquete se construye en Debian 12 para evitar dependencias de Ubuntu no disponibles en Debian estable. Los instaladores para Windows y macOS siguen en preparación.</p>
       </div>
       <div class="download-grid">
         <a class="download-card download-ready" href="downloads/cub3-launcher-dev-amd64.deb" aria-label="Descargar el build de desarrollo más reciente de CUB3 Launcher para Linux x86_64 en formato .deb">
           <span class="platform-icon linux-icon"><img src="assets/platforms/linux.png" alt=""></span>
-          <span class="platform-copy"><strong>Linux</strong><small>Debian / Ubuntu · x86_64</small></span>
+          <span class="platform-copy"><strong>Linux</strong><small>Debian 12 o posterior · x86_64</small></span>
           <span class="download-action">Descargar .deb <b aria-hidden="true">↓</b></span>
-          <span class="platform-note">Build de desarrollo · Debian / Ubuntu x86_64</span>
+          <span class="platform-note">Build de desarrollo · generado en Debian 12 x86_64</span>
         </a>
         <article class="download-card download-soon" aria-label="Windows, próximamente">
           <span class="platform-icon windows-icon"><img src="assets/platforms/windows.png" alt=""></span>
@@ -165,6 +165,7 @@
         <ul>
           <li><b>Incluidas en Depends:</b> bibliotecas Qt 6 y del sistema detectadas al empaquetar, plugin Qt SQLite y unzip.</li>
           <li><b>Recomendada:</b> Java Runtime headless; APT la instala como recomendación por defecto.</li>
+          <li><b>Compatibilidad:</b> paquete construido en Debian 12; no lo instales en Ubuntu u otra distribución sin verificar primero sus dependencias.</li>
           <li><b>Java:</b> la versión debe coincidir con la versión de Minecraft que ejecutes. Minecraft 26.3 requiere Java 25.</li>
         </ul>
         <p class="dependency-command">Instala el paquete con <strong>sudo apt install ./cub3-launcher-dev-amd64.deb</strong> para que APT resuelva automáticamente las dependencias.</p>

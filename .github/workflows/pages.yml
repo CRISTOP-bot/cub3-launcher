@@ -30,20 +30,37 @@ jobs:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
+    container:
+      image: debian:bookworm
     steps:
+      - name: Instalar dependencias del entorno Debian estable
+        run: |
+          apt-get update
+          DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+            ca-certificates git build-essential cmake qt6-base-dev \
+            libqt6sql6-sqlite qtkeychain-qt6-dev unzip
       - name: Descargar código
         uses: actions/checkout@v4
-      - name: Instalar dependencias de compilación
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y build-essential cmake qt6-base-dev libqt6sql6-sqlite qtkeychain-qt6-dev
       - name: Compilar paquete .deb de desarrollo
         run: |
-          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF
+          cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
+            -DCUB3_PACKAGE_REVISION="${GITHUB_RUN_NUMBER}"
           cmake --build build --parallel 2
           cpack --config build/CPackConfig.cmake -B build/packages
           package=$(find build/packages -maxdepth 1 -type f -name '*.deb' -print -quit)
           test -n "$package"
+          depends=$(dpkg-deb -f "$package" Depends)
+          version=$(dpkg-deb -f "$package" Version)
+          echo "Package version: $version"
+          echo "Package dependencies: $depends"
+          if printf '%s' "$depends" | grep -q 't64'; then
+            echo "Unexpected t64 dependency in Debian 12 build" >&2
+            exit 1
+          fi
+          case "$version" in
+            *+dev.*) ;;
+            *) echo "Development package version is not upgradeable: $version" >&2; exit 1 ;;
+          esac
           mkdir -p site/downloads
           cp "$package" site/downloads/cub3-launcher-dev-amd64.deb
       - name: Preparar sitio estático

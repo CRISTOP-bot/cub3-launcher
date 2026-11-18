@@ -162,6 +162,12 @@ if(UNIX AND NOT APPLE)
     # therefore not discoverable from ELF linkage alone.
     set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6sql6-sqlite, unzip")
     set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "default-jre-headless")
+    # Development packages use a monotonically increasing Debian revision so
+    # APT can upgrade them instead of treating each build as a downgrade.
+    if(DEFINED CUB3_PACKAGE_REVISION AND NOT CUB3_PACKAGE_REVISION STREQUAL "")
+        set(CPACK_DEBIAN_PACKAGE_VERSION
+            "${PROJECT_VERSION}+dev.${CUB3_PACKAGE_REVISION}")
+    endif()
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_PACKAGE_FILE_NAME
         "cub3-launcher-${PROJECT_VERSION}-${CMAKE_SYSTEM_PROCESSOR}")
