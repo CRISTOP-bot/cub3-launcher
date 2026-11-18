@@ -133,6 +133,10 @@
           <span class="fix-number">08</span>
           <div><h3>Validación antes de instalar el archivo</h3><p><b>Antes</b> · se verificaba el tamaño al terminar la transferencia.</p><p><b>Ahora</b> · el exceso se detecta durante la descarga; el archivo temporal se comprueba por tamaño y, cuando existe, por hash antes de moverlo al destino.</p></div>
         </article>
+        <article class="fix-row">
+          <span class="fix-number">09</span>
+          <div><h3>Respuestas de API con límite de memoria</h3><p><b>Antes</b> · las respuestas de servicios se acumulaban completas antes de procesarlas.</p><p><b>Ahora</b> · se leen en partes con un búfer de red de 1 MiB y un máximo de 32 MiB por respuesta; las respuestas mayores se cancelan. Las descargas grandes de archivos siguen su flujo separado.</p></div>
+        </article>
       </div>
       <p class="fixes-note">Build de desarrollo · Release, CTest y comprobación de formato pasaron en CI. La restauración de sesión con cuentas y llavero reales aún requiere una prueba manual. No se publica una cifra de rendimiento: depende del equipo, la red y el almacenamiento.</p>
     </section>
