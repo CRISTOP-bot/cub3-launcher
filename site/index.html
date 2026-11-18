@@ -27,6 +27,7 @@
     </a>
     <nav aria-label="Navegación principal">
       <a href="#caracteristicas">Características</a>
+      <a href="#fixes">FIXES</a>
       <a href="#descargas">Descargas</a>
       <a href="#identidad">Identidad</a>
       <a class="nav-cta" href="https://github.com/CRISTOP-bot/cub3-launcher">Ver código <span aria-hidden="true">↗</span></a>
@@ -92,6 +93,33 @@
       </figure>
     </section>
 
+    <section class="fixes wrap" id="fixes">
+      <div class="fixes-heading">
+        <span class="eyebrow muted">CAMBIOS DE ESTA ACTUALIZACIÓN</span>
+        <h2>FIXES.<br><em>Sesiones bajo control.</em></h2>
+        <p>Comparación del comportamiento anterior con los cambios incluidos en el build actual de desarrollo.</p>
+      </div>
+      <div class="fixes-list">
+        <article class="fix-row">
+          <span class="fix-number">01</span>
+          <div><h3>Restauración al abrir</h3><p><b>Antes</b> · una sesión sin expirar podía mostrarse sin comprobarla con el proveedor.</p><p><b>Ahora</b> · Microsoft o Ely.by validan la sesión antes de mostrar la cuenta; los tokens próximos a expirar se renuevan.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">02</span>
+          <div><h3>Errores del llavero visibles</h3><p><b>Antes</b> · una escritura fallida podía dejar la impresión de que la sesión se había guardado.</p><p><b>Ahora</b> · se informa el resultado del llavero seguro; no se usa SQLite ni archivos en texto plano para los tokens.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">03</span>
+          <div><h3>Login y logout sin carreras</h3><p><b>Antes</b> · operaciones asíncronas antiguas podían terminar después de un login nuevo o un cierre de sesión.</p><p><b>Ahora</b> · las operaciones de credenciales se ordenan y las respuestas obsoletas se descartan.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">04</span>
+          <div><h3>Perfil Ely.by conservado</h3><p><b>Antes</b> · al renovar se reconstruía la cuenta y se podían perder datos del perfil.</p><p><b>Ahora</b> · se conservan UUID, nombre y URL de skin si el proveedor no devuelve un valor nuevo.</p></div>
+        </article>
+      </div>
+      <p class="fixes-note">Build de desarrollo: compilación Release y CTest pasan en CI. La restauración con un llavero y cuentas reales todavía requiere una prueba manual de cierre y reapertura.</p>
+    </section>
+
     <section class="downloads wrap" id="descargas">
       <div class="downloads-heading">
         <div>
@@ -121,6 +149,17 @@
         </article>
       </div>
       <p class="download-help">Este paquete se genera desde la rama dev y puede incluir cambios experimentales. <a href="https://github.com/CRISTOP-bot/cub3-launcher/tree/dev">Revisar el código fuente ↗</a></p>
+      <div class="dependency-card" id="dependencias">
+        <div><span class="eyebrow muted">DEPENDENCIAS</span><h3>Instalación automática con APT</h3>
+          <p>El paquete declara sus bibliotecas y los requisitos de ejecución; al instalar el .deb con APT, el sistema instala las dependencias declaradas que falten.</p>
+        </div>
+        <ul>
+          <li><b>Incluidas en Depends:</b> bibliotecas Qt 6 y del sistema detectadas al empaquetar, plugin Qt SQLite y unzip.</li>
+          <li><b>Recomendada:</b> Java Runtime headless; APT la instala como recomendación por defecto.</li>
+          <li><b>Java:</b> la versión debe coincidir con la versión de Minecraft que ejecutes. Minecraft 26.3 requiere Java 25.</li>
+        </ul>
+        <p class="dependency-command">Instala el paquete con <strong>sudo apt install ./cub3-launcher-dev-amd64.deb</strong> para que APT resuelva automáticamente las dependencias.</p>
+      </div>
     </section>
 
     <section class="identity wrap" id="identidad">

@@ -157,6 +157,11 @@ if(UNIX AND NOT APPLE)
     set(CPACK_PACKAGE_CONTACT "CUB3 Launcher maintainers")
     set(CPACK_DEBIAN_PACKAGE_SECTION "games")
     set(CPACK_DEBIAN_PACKAGE_MAINTAINER "CUB3 Launcher maintainers")
+    # Shared-library dependencies are derived from the linked executable by
+    # dpkg-shlibdeps. These runtime components are loaded dynamically and are
+    # therefore not discoverable from ELF linkage alone.
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6sql6-sqlite, unzip")
+    set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "default-jre-headless")
     set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
     set(CPACK_PACKAGE_FILE_NAME
         "cub3-launcher-${PROJECT_VERSION}-${CMAKE_SYSTEM_PROCESSOR}")

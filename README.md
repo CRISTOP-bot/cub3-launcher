@@ -48,9 +48,27 @@ para conocer el estado revisado.
 - CMake 3.21 o posterior y un compilador C++20.
 - Qt 6 con Widgets, Network, Sql y Concurrent.
 - QtKeychain para guardar la sesión de forma segura en el sistema.
-- SQLite y el controlador Qt SQLite.
-- Java compatible con la versión de Minecraft que quieras ejecutar.
+- SQLite y el plugin Qt SQLite.
 - `unzip` para extraer bibliotecas nativas en Linux.
+- Java compatible con la versión de Minecraft que quieras ejecutar (recomendado; no es una versión fija).
+
+El paquete `.deb` declara las bibliotecas compartidas detectadas durante el
+empaquetado, además de `libqt6sql6-sqlite` y `unzip`; APT instala los paquetes
+que falten al instalarlo. `default-jre-headless` se declara como recomendación
+para que APT lo instale por defecto, pero puedes usar una JVM compatible ya
+instalada. La versión de Java depende de Minecraft; por ejemplo, Minecraft
+26.3 requiere Java 25.
+
+Instálalo desde un terminal para que APT resuelva las dependencias:
+
+```sh
+sudo apt install ./cub3-launcher-dev-amd64.deb
+```
+
+La compilación del `.deb` en Pages usa la distribución de Ubuntu del runner,
+por lo que sus dependencias Qt/glibc requieren una distribución Debian/Ubuntu
+compatible; si APT informa que una dependencia no está disponible, usa una
+versión más reciente compatible.
 
 En Debian o Ubuntu, instala las dependencias principales:
 
