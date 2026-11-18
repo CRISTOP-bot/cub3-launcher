@@ -8,6 +8,10 @@ oficiales y organizar instalaciones locales.
 
 > **Pre lanzamiento:** la versión pública actual es `0.1.0-pre.1` para Debian y
 > Ubuntu de 64 bits. Windows y macOS todavía no tienen instaladores.
+>
+> **Proyecto experimental:** CUB3 tiene apenas unos días de vida. No es
+> estable; puede contener errores, cambiar sin aviso o perder datos. Haz copias
+> de seguridad de tus mundos y configuraciones antes de probarlo.
 
 ## Descargar
 
@@ -33,7 +37,7 @@ el manifiesto solicita Java 25.
 - Paquete `.deb` y acceso desde el menú de aplicaciones.
 
 La creación de perfiles con Fabric, Forge u otros cargadores todavía no está
-implementada. Consulta [la auditoría de errores y limitaciones](docs/BUG_AUDIT.md)
+implementada. Consulta [la auditoría de errores y limitaciones](DOCS/BUG_AUDIT.md)
 para conocer el estado revisado.
 
 ## Compilar desde el código
@@ -70,18 +74,20 @@ El paquete se genera en `build/`.
 
 ## Flujo de desarrollo
 
-**Todo el trabajo se hace en la rama `dev`: código, correcciones, sitio web y
-documentación. No hagas commits ni pushes a `main`.** `dev` es la rama
-predeterminada del repositorio; `main` queda reservada para versiones estables.
+**Todo cambio debe terminar en `dev`: código, correcciones, sitio web y
+documentación.** `dev` es la rama predeterminada y está protegida: trabaja en
+una rama corta y abre un PR hacia `dev`. No confirmes directamente en `dev` ni
+en `main`; esta última queda reservada para versiones estables.
 
 ```sh
 git clone https://github.com/CRISTOP-bot/cub3-launcher.git
 cd cub3-launcher
 git switch dev
+git switch -c tipo/descripcion-corta
 ```
 
-Lee [`CONTRIBUTING.md`](CONTRIBUTING.md) antes de enviar cambios. Las
-solicitudes de integración deben tener como destino `dev`.
+Lee [`CONTRIBUTING.md`](CONTRIBUTING.md) antes de enviar cambios. Los PR deben
+tener como destino `dev`.
 
 ## Datos y privacidad
 
@@ -98,15 +104,15 @@ capturas o reportes públicos.
 - `resources/`: recursos de escritorio e iconos.
 - `assets/`: imágenes e identidad visual compartidas.
 - `site/`: sitio estático publicado en GitHub Pages.
-- `docs/`: auditorías y notas de versiones.
+- `DOCS/`: auditorías y notas de versiones.
 - `tests/`: espacio reservado para pruebas automatizadas.
 
 ## Licencia
 
-Este repositorio todavía no incluye un archivo `LICENSE`. La publicación del
-código en GitHub no concede por sí sola permisos de redistribución o uso. Se
-definirá una licencia antes de presentar el proyecto como software de código
-abierto.
+El código de este proyecto se distribuye bajo la licencia MIT. Consulta
+[`LICENSE`](LICENSE) para ver sus términos. La MIT cubre el código original que
+el proyecto puede licenciar; Minecraft, sus marcas y recursos de terceros no
+quedan incluidos y conservan sus propias condiciones de uso.
 
 ## Marcas registradas
 
