@@ -110,6 +110,8 @@ Puedes trabajar directamente en `dev` o abrir un PR con destino `dev`. Lee
 
 ## Datos y privacidad
 
+Consulta la [Política de uso y privacidad](https://cristop-bot.github.io/cub3-launcher/politica.html), publicada junto con el sitio del proyecto.
+
 La base de datos y las instancias se guardan en el directorio de datos de
 usuario de Qt (`cub3-launcher`). La caché de noticias e imágenes usa el
 directorio de caché de usuario. Los tokens de sesión se guardan únicamente en el llavero

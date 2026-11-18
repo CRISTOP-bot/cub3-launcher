@@ -49,7 +49,7 @@ jobs:
       - name: Preparar sitio estático
         run: |
           mkdir -p _site/assets/logos _site/assets/platforms _site/downloads
-          cp site/index.html site/styles.css _site/
+          cp site/index.html site/politica.html site/styles.css _site/
           cp site/assets/*.png site/assets/*.svg _site/assets/
           cp site/assets/logos/*.svg _site/assets/logos/
           cp site/assets/platforms/*.png _site/assets/platforms/

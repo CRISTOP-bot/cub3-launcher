@@ -84,7 +84,29 @@ h2 em { color: var(--green); font-style: normal; }
 .fix-row p { margin: 5px 0 0; color: var(--muted); font-size: 11px; line-height: 1.7; }
 .fix-row p b { color: var(--text); }
 .fixes-note { grid-column: 2; margin: -28px 0 0 59px; color: #82939d; font-size: 10px; line-height: 1.7; }
+.ui-update { display: grid; grid-template-columns: 54px 1fr auto; align-items: center; gap: 20px; margin-top: 30px; padding: 22px 25px; border: 1px solid rgba(89,223,121,.2); border-radius: 15px; background: radial-gradient(ellipse at 0 0, rgba(89,223,121,.08), transparent 45%), #111a25; }
+.ui-update-mark { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid rgba(89,223,121,.25); border-radius: 14px; color: var(--green); background: rgba(89,223,121,.08); font-size: 24px; }
+.ui-update h2 { margin: 8px 0 7px; font-size: 23px; letter-spacing: -.8px; }
+.ui-update p { max-width: 760px; margin: 0; color: var(--muted); font-size: 11px; line-height: 1.8; }
+.ui-update p a { color: var(--green); font-weight: 700; }
 .downloads { padding: 106px 0 5px; }
+.policy-page { min-height: 100vh; }
+.policy-content { max-width: 900px; padding-top: 28px; padding-bottom: 65px; }
+.policy-back { display: inline-block; margin-bottom: 30px; color: var(--green); font-size: 12px; font-weight: 700; }
+.policy-heading { padding: 30px 36px; border: 1px solid var(--line); border-radius: 18px; background: radial-gradient(ellipse at 0 0, rgba(89,223,121,.12), transparent 55%), #111a25; }
+.policy-heading h1 { margin: 20px 0 12px; font-size: clamp(42px, 6vw, 64px); }
+.policy-heading > p { margin: 0; color: var(--muted); font-size: 14px; }
+.policy-heading small { display: block; margin-top: 18px; color: #81909b; font-size: 10px; }
+.policy-notice { margin: 20px 0; padding: 17px 20px; border: 1px solid rgba(239,198,117,.25); border-radius: 12px; background: rgba(239,198,117,.06); color: #c2c6ba; font-size: 12px; line-height: 1.8; }
+.policy-notice strong { color: var(--amber); }
+.policy-section { margin-top: 12px; padding: 23px 25px; border: 1px solid var(--line); border-radius: 14px; background: linear-gradient(145deg, #172331, #111923); }
+.policy-section h2 { margin: 0 0 13px; font-size: 21px; letter-spacing: -.6px; }
+.policy-section p, .policy-section li { color: #aab7bf; font-size: 12px; line-height: 1.85; }
+.policy-section p { margin: 8px 0; }
+.policy-section ul { margin: 0; padding-left: 20px; }
+.policy-section li + li { margin-top: 7px; }
+.policy-section a { color: var(--green); font-weight: 700; }
+.policy-footnote { margin: 18px 5px 0; color: #82939d; font-size: 10px; line-height: 1.8; }
 .dependency-card { display: grid; grid-template-columns: .9fr 1.1fr; gap: 18px 32px; margin-top: 30px; padding: 24px 26px; border: 1px solid rgba(89,223,121,.2); border-radius: 15px; background: radial-gradient(ellipse at 0 0, rgba(89,223,121,.08), transparent 45%), #111a25; }
 .dependency-card h3 { margin: 10px 0; font-size: 16px; }
 .dependency-card p, .dependency-card li { color: var(--muted); font-size: 11px; line-height: 1.75; }
@@ -156,6 +178,14 @@ h2 em { color: var(--green); font-style: normal; }
   .fix-row { grid-template-columns: 34px 1fr; gap: 12px; padding: 18px 15px; }
   .fix-number { width: 32px; height: 32px; border-radius: 9px; }
   .fixes-note { grid-column: 1; margin: 0 10px; }
+  .ui-update { grid-template-columns: 42px 1fr; gap: 12px; padding: 18px; }
+  .ui-update-mark { width: 40px; height: 40px; border-radius: 12px; }
+  .ui-update > a { grid-column: 1 / -1; justify-self: start; }
+  .ui-update h2 { font-size: 21px; }
+  .policy-content { padding-top: 12px; }
+  .policy-back { margin-bottom: 18px; }
+  .policy-heading { padding: 24px 20px; }
+  .policy-section { padding: 19px 17px; }
   .downloads { padding: 80px 0 0; }
   .downloads-heading { flex-direction: column; align-items: flex-start; gap: 16px; margin: 0 10px 22px; }
   .download-grid { grid-template-columns: 1fr; }
