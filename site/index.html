@@ -28,6 +28,7 @@
     <nav aria-label="Navegación principal">
       <a href="#caracteristicas">Características</a>
       <a href="#fixes">FIXES</a>
+      <a href="#seguridad">Seguridad y rendimiento</a>
       <a href="#guia">Guía rápida</a>
       <a href="#descargas">Descargas</a>
       <a href="politica.html">Política</a>
@@ -119,6 +120,21 @@
         </article>
       </div>
       <p class="fixes-note">Build de desarrollo: compilación Release y CTest pasan en CI. La restauración con un llavero y cuentas reales todavía requiere una prueba manual de cierre y reapertura.</p>
+    </section>
+
+    <section class="security-performance wrap" id="seguridad" aria-labelledby="security-performance-title">
+      <div class="security-heading">
+        <span class="eyebrow muted">RED Y DESCARGAS · BUILD DE DESARROLLO</span>
+        <h2 id="security-performance-title">Conexiones más seguras.<br><em>Recursos bajo control.</em></h2>
+        <p>El cliente de red y el gestor de descargas ahora aplican límites adicionales para reducir riesgos y evitar reservar archivos o respuestas completas en memoria.</p>
+      </div>
+      <div class="security-grid">
+        <article class="security-card"><span class="security-index">01 / TRANSPORTE</span><h3>HTTPS obligatorio</h3><p>Las solicitudes y descargas rechazan URLs HTTP, inválidas o con usuario y contraseña incrustados. Los POST de autenticación no siguen redirecciones; los demás flujos no aceptan degradar a una conexión menos segura.</p></article>
+        <article class="security-card"><span class="security-index">02 / PRIVACIDAD</span><h3>Menos datos en registros</h3><p>Los registros de red ya no imprimen la consulta ni el fragmento de la URL, donde podrían venir parámetros privados. Los mensajes se limitan a la dirección base del servidor.</p></article>
+        <article class="security-card"><span class="security-index">03 / MEMORIA</span><h3>Descarga en streaming</h3><p>Los datos se escriben por partes con un búfer de lectura de hasta 1 MiB, en vez de acumular el archivo completo en memoria. Si el manifiesto anuncia el tamaño, el flujo se detiene si lo supera.</p></article>
+        <article class="security-card"><span class="security-index">04 / VERIFICACIÓN</span><h3>Archivo temporal y validación</h3><p>La descarga se prepara en un archivo temporal y se comprueba su tamaño y, cuando hay hash disponible, su hash antes de colocarla en su destino final.</p></article>
+      </div>
+      <p class="security-note">Build de desarrollo · Build Release, pruebas CTest y comprobación de formato pasaron en CI. No se publica una cifra de rendimiento: el consumo y la velocidad dependen del equipo, la red y el almacenamiento.</p>
     </section>
 
     <section class="ui-update wrap" aria-labelledby="ui-update-title">
