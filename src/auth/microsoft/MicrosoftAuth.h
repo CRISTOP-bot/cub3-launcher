@@ -40,6 +40,11 @@ public:
                std::function<void(const Account&)> onComplete,
                std::function<void(const QString&)> onError);
 
+    /// Validate an existing Minecraft access token and refresh profile metadata.
+    void validate(const Account& account,
+                  std::function<void(const Account&)> onComplete,
+                  std::function<void(const QString&)> onError);
+
     /// Refresh an existing Microsoft account's tokens.
     void refresh(const Account& account,
                  std::function<void(const Account&)> onComplete,

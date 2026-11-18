@@ -35,12 +35,12 @@ public:
                std::function<void(const QString&)> onError);
 
     /// Validate the current access token.
-    /// Returns true if the token is still valid.
+    /// Returns false and a reason when the provider rejects the token.
     void validate(const QString& accessToken,
-                   std::function<void(bool)> onComplete);
+                  std::function<void(bool, const QString&)> onComplete);
 
-    /// Refresh the access token.
-    void refresh(const QString& accessToken,
+    /// Refresh the account's access token while preserving profile metadata.
+    void refresh(const Account& account,
                  std::function<void(const Account&)> onComplete,
                  std::function<void(const QString&)> onError);
 

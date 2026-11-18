@@ -28,16 +28,31 @@ Minecraft. Validación de compilación Release y revisión de formato con
 
 ## Limitaciones conocidas
 
-- Las sesiones de Microsoft y Ely.by se conservan en el llavero seguro del
-  sistema. Si no hay un servicio de credenciales disponible o el usuario
-  deniega el acceso, la sesión dura solo hasta cerrar el launcher.
-- Los tokens son secretos locales protegidos por el llavero del sistema. No se
-  guardan contraseñas de Microsoft ni de Ely.by.
+- **Sesiones de Microsoft y Ely.by:** los tokens se guardan exclusivamente en
+  el llavero seguro del sistema. Lecturas y escrituras se verifican y notifican;
+  no existe respaldo en texto plano. Si el servicio de credenciales no está
+  disponible, se deniega el acceso o la escritura falla, la sesión no puede
+  persistir y CUB3 informa el error. La restauración valida con el proveedor y
+  renueva tokens vencidos antes de mostrar la cuenta.
+- **Los tokens son secretos locales protegidos por el llavero del sistema. No se
+  guardan contraseñas de Microsoft ni de Ely.by.** Una denegación del proveedor
+  o una falla de red durante la validación no borra automáticamente los datos
+  del llavero.
+- **Escrituras y cierres de sesión:** las operaciones asíncronas del llavero se
+  serializan y se descartan respuestas antiguas para evitar que una lectura o
+  escritura pendiente restaure una cuenta después de un logout/login posterior.
+  La escritura del login termina antes de anunciar el inicio como completado.
+- **Pruebas de autenticación:** se añadieron pruebas de serialización y perfil
+  de cuenta. Los fallos/renovaciones de proveedores y la coordinación con un
+  llavero simulado aún requieren cobertura automatizada específica; no se
+  consideran verificados por estas pruebas de modelo.
 - Microsoft requiere configurar un ID de cliente de una aplicación pública.
 - La biblioteca muestra instalaciones vanilla; crear instancias con Fabric,
   Forge u otros cargadores todavía no está implementado.
-- `tests/` no contiene casos automatizados en esta revisión. CMake informa que
-  no hay fuentes de prueba.
+- `tests/AuthSessionTests.cpp` cubre la serialización de cuentas Microsoft y
+  Ely.by, la conservación de UUID/nombre/skin y las condiciones de expiración.
+  No sustituye las pruebas integradas de almacenamiento, red y reanudación entre
+  procesos que aún faltan.
 - Las distribuciones Linux deben tener instalada la versión Java requerida por
   el manifiesto de Minecraft. En Debian/Ubuntu, Java 25 se instala con
   `sudo apt install openjdk-25-jre-headless`.

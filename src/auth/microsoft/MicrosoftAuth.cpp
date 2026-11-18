@@ -138,6 +138,29 @@ void MicrosoftAuth::login(
         onError);
 }
 
+void MicrosoftAuth::validate(const Account& account,
+                             std::function<void(const Account&)> onComplete,
+                             std::function<void(const QString&)> onError)
+{
+    if (account.accessToken.isEmpty()) {
+        onError(QStringLiteral("No Minecraft access token available"));
+        return;
+    }
+
+    fetchProfile(account.accessToken,
+        [account, onComplete](const QString& username, const QString& uuid,
+                              const QString& skinUrl) mutable {
+            Account validated = account;
+            if (!username.isEmpty())
+                validated.username = username;
+            if (!uuid.isEmpty())
+                validated.uuid = uuid;
+            if (!skinUrl.isEmpty())
+                validated.skinUrl = skinUrl;
+            onComplete(validated);
+        }, onError);
+}
+
 void MicrosoftAuth::refresh(const Account& account,
                             std::function<void(const Account&)> onComplete,
                             std::function<void(const QString&)> onError)

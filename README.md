@@ -94,10 +94,13 @@ Puedes trabajar directamente en `dev` o abrir un PR con destino `dev`. Lee
 
 La base de datos y las instancias se guardan en el directorio de datos de
 usuario de Qt (`cub3-launcher`). La caché de noticias e imágenes usa el
-directorio de caché de usuario. Los tokens de sesión se guardan en el llavero
-seguro del sistema; las contraseñas no se guardan. Si el sistema no tiene un
-llavero disponible, la cuenta solo estará activa hasta cerrar el launcher.
-Microsoft requiere un ID de cliente de una aplicación pública configurado en
+directorio de caché de usuario. Los tokens de sesión se guardan únicamente en el llavero
+seguro del sistema; las contraseñas no se guardan. Si el llavero no está
+instalado, bloqueado o rechaza una lectura/escritura, CUB3 avisa y no presenta
+la sesión como guardada; no usa SQLite ni archivos en texto plano como respaldo.
+Al iniciar, el launcher comprueba la cuenta con el proveedor y renueva tokens
+cuando corresponde antes de mostrarla como autenticada. Microsoft requiere un
+ID de cliente de una aplicación pública configurado en
 `CUB3_MICROSOFT_CLIENT_ID` o en las preferencias de CUB3. No incluyas
 credenciales, tokens ni secretos en commits, capturas o reportes públicos.
 

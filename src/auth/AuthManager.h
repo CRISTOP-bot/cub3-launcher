@@ -4,6 +4,7 @@
 #include <QObject>
 #include <QList>
 #include <QString>
+#include <QQueue>
 #include <functional>
 
 #include "Account.h"
@@ -61,17 +62,24 @@ signals:
     void microsoftDeviceCode(const QString& userCode, const QString& verificationUri);
     void sessionRestoreFinished(bool hasSession);
     void credentialStorageError(const QString& error);
+    void sessionRestoreFailed(const QString& reason);
 
 private:
     void restoreSession();
-    void persistSession();
+    void persistSession(std::function<void(bool)> onComplete = {});
     void removePersistedSession();
     void finishSessionRestore();
+    void enqueueStorageOperation(std::function<void()> operation);
+    void startNextStorageOperation();
+    void storageOperationFinished();
 
     MicrosoftAuth* m_microsoft{nullptr};
     ElybyAuth* m_elyby{nullptr};
     Account m_currentAccount;
     bool m_restoring{true};
+    bool m_storageBusy{false};
+    quint64 m_sessionRevision{0};
+    QQueue<std::function<void()>> m_storageQueue;
 };
 
 } // namespace cub3::auth

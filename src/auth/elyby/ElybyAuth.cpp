@@ -75,27 +75,34 @@ void ElybyAuth::login(const QString& username, const QString& password,
 }
 
 void ElybyAuth::validate(const QString& accessToken,
-                          std::function<void(bool)> onComplete)
+                          std::function<void(bool, const QString&)> onComplete)
 {
     QJsonObject body;
     body["accessToken"] = accessToken;
 
     m_http->post(QUrl(kValidateUrl), QJsonDocument(body).toJson(QJsonDocument::Compact),
-        [onComplete](const QByteArray&, int status) {
-            onComplete(status == 204 || status == 200);
+        [onComplete](const QByteArray& data, int status) {
+            QString reason;
+            if (status != 204 && status != 200) {
+                const auto object = QJsonDocument::fromJson(data).object();
+                reason = object.value(QStringLiteral("errorMessage")).toString();
+                if (reason.isEmpty())
+                    reason = QStringLiteral("Ely.by session validation failed (HTTP %1)").arg(status);
+            }
+            onComplete(status == 204 || status == 200, reason);
         });
 }
 
-void ElybyAuth::refresh(const QString& accessToken,
+void ElybyAuth::refresh(const Account& previousAccount,
                          std::function<void(const Account&)> onComplete,
                          std::function<void(const QString&)> onError)
 {
     QJsonObject body;
-    body["accessToken"] = accessToken;
+    body["accessToken"] = previousAccount.accessToken;
     body["requestUser"] = true;
 
     m_http->post(QUrl(kRefreshUrl), QJsonDocument(body).toJson(QJsonDocument::Compact),
-        [onComplete, onError](const QByteArray& data, int status) {
+        [previousAccount, onComplete, onError](const QByteArray& data, int status) {
             if (status != 200) {
                 onError(QStringLiteral("Token refresh failed: %1").arg(status));
                 return;
@@ -109,12 +116,15 @@ void ElybyAuth::refresh(const QString& accessToken,
                 return;
             }
 
-            Account account;
+            Account account = previousAccount;
             account.provider = Provider::Elyby;
-            account.username = obj.value("selectedProfile")
-                                   .toObject().value("name").toString();
-            account.uuid = obj.value("selectedProfile")
-                               .toObject().value("id").toString();
+            const auto profile = obj.value("selectedProfile").toObject();
+            const QString username = profile.value("name").toString();
+            const QString uuid = profile.value("id").toString();
+            if (!username.isEmpty())
+                account.username = username;
+            if (!uuid.isEmpty())
+                account.uuid = uuid;
             account.accessToken = accessToken;
             account.expiresAt = QDateTime::currentDateTime().addSecs(86400);
 

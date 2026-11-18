@@ -1,0 +1,35 @@
+name: Build and test
+
+on:
+  push:
+    branches: [dev]
+  pull_request:
+    branches: [dev]
+
+permissions:
+  contents: read
+
+jobs:
+  linux-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential cmake qt6-base-dev libqt6sql6-sqlite qtkeychain-qt6-dev
+      - name: Configure Release
+        run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+      - name: Build
+        run: cmake --build build --parallel 2
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure
+      - name: Check patch whitespace
+        if: github.event_name == 'push'
+        run: git diff --check HEAD^ HEAD
+      - name: Check pull request whitespace
+        if: github.event_name == 'pull_request'
+        run: git diff --check "origin/${{ github.base_ref }}...HEAD"

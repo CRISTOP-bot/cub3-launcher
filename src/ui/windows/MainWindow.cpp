@@ -467,11 +467,20 @@ void MainWindow::setApp(application::Cub3App* app) {
         return;
 
     m_auth = &m_app->authManager();
+    m_dashboard->setPlayerName(m_auth->isRestoring()
+        ? QStringLiteral("RESTAURANDO…") : m_auth->currentAccount().username);
     connect(m_auth, &auth::AuthManager::accountChanged,
             m_dashboard, [this](const auth::Account& account) {
         m_dashboard->setPlayerName(account.username);
     });
-    connect(m_auth, &auth::AuthManager::microsoftDeviceCode,
+    connect(m_auth, &auth::AuthManager::sessionRestoreFailed,
+            this, [this](const QString& reason) {
+        QMessageBox::warning(
+            this, QStringLiteral("No se pudo restaurar la sesión"),
+            QStringLiteral("El proveedor no validó la sesión guardada. Las credenciales no se eliminaron; puedes volver a intentarlo iniciando sesión.\n\n%1")
+                .arg(reason));
+    });
+      connect(m_auth, &auth::AuthManager::microsoftDeviceCode,
             this, [this](const QString& code, const QString& uri) {
         auto* dialog = new QMessageBox(
             QMessageBox::Information,
