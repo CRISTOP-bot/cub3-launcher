@@ -111,7 +111,7 @@ credenciales, tokens ni secretos en commits, capturas o reportes públicos.
 - `assets/`: imágenes e identidad visual compartidas.
 - `site/`: sitio estático publicado en GitHub Pages.
 - `DOCS/`: auditorías y notas de versiones.
-- `tests/`: espacio reservado para pruebas automatizadas.
+- `tests/`: pruebas automatizadas de componentes.
 
 ## Licencia
 
