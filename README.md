@@ -35,6 +35,8 @@ cpack --config build/CPackConfig.cmake -B build
 
 El instalador aparece como `build/cub3-launcher-<versión>-<arquitectura>.deb`.
 Al instalarlo, CUB3 queda disponible en el menú de aplicaciones.
+La compilación pública actual se descarga desde
+[Releases](https://github.com/CRISTOP-bot/cub3-launcher/releases/tag/v0.1.0-pre.1).
 
 ## Datos y configuración
 
