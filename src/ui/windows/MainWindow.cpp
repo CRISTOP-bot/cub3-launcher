@@ -150,7 +150,7 @@ public:
     explicit BrandMark(QWidget* parent = nullptr)
         : QWidget(parent)
     {
-        setFixedSize(180, 50);
+        setFixedSize(180, 58);
     }
 
 protected:
