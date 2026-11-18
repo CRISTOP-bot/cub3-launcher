@@ -9,6 +9,7 @@
 #include <qt6keychain/keychain.h>
 #include <QJsonDocument>
 #include <QJsonParseError>
+#include <QTimer>
 
 namespace cub3::auth {
 namespace {
@@ -21,7 +22,9 @@ AuthManager::AuthManager(network::HttpClient* http, QObject* parent)
     , m_microsoft(new MicrosoftAuth(http, this))
     , m_elyby(new ElybyAuth(http, this))
 {
-    restoreSession();
+    // Let owners connect to accountChanged before an immediate keychain reply
+    // can publish the restored account.
+    QTimer::singleShot(0, this, [this] { restoreSession(); });
 }
 
 void AuthManager::loginMicrosoft(
