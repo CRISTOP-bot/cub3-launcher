@@ -62,8 +62,10 @@ public:
     struct FileDescriptor {
         QString url;
         QString path;     // relative to the data directory
-        QString hash;      // SHA-1
+        QString hash;
+        QString hashAlgorithm{QStringLiteral("sha1")};
         qint64 size{-1};
+        bool native{false};
     };
 
     void resolveVersion(const QString& versionId,

@@ -32,6 +32,7 @@ void DownloadEngine::setMaxConcurrent(int max) {
     if (max < 1) max = 1;
     if (max > 16) max = 16;
     m_maxConcurrent = max;
+    processQueue();
 }
 
 void DownloadEngine::adaptForHDD(bool isHDD) {
@@ -80,6 +81,17 @@ QString DownloadEngine::submit(const DownloadJob& job) {
     // Check if file already exists and is verified
     QFileInfo fi(j.targetPath);
     if (fi.isFile()) {
+        if (!m_validateDownloads && j.expectedSize > 0
+            && fi.size() == j.expectedSize) {
+            QMutexLocker locker(&m_mutex);
+            if (isDuplicate())
+                return {};
+            locker.unlock();
+            emit progressChanged({j.id, fi.size(), fi.size(), 0,
+                                  DownloadStatus::Skipped, {}});
+            emit downloadFinished(j.id, DownloadStatus::Skipped, {});
+            return j.id;
+        }
         if (j.expectedHash.isEmpty()) {
             // No hash to verify — skip if size matches
             if (j.expectedSize > 0 && fi.size() == j.expectedSize) {
@@ -88,18 +100,19 @@ QString DownloadEngine::submit(const DownloadJob& job) {
                     return {};
                 locker.unlock();
                 emit progressChanged({j.id, fi.size(), fi.size(), 0,
-                                      DownloadStatus::Skipped});
+                                      DownloadStatus::Skipped, {}});
                 emit downloadFinished(j.id, DownloadStatus::Skipped, {});
                 return j.id;
             }
-        } else if (verifyHash(j.targetPath, j.expectedHash, j.hashAlgorithm)) {
+        } else if (m_validateDownloads
+                   && verifyHash(j.targetPath, j.expectedHash, j.hashAlgorithm)) {
             // Hash matches — skip download
             QMutexLocker locker(&m_mutex);
             if (isDuplicate())
                 return {};
             locker.unlock();
             emit progressChanged({j.id, fi.size(), fi.size(), 0,
-                                  DownloadStatus::Skipped});
+                                  DownloadStatus::Skipped, {}});
             emit downloadFinished(j.id, DownloadStatus::Skipped, {});
             return j.id;
         }
@@ -349,7 +362,7 @@ void DownloadEngine::startJob(const DownloadJob& job) {
         }
 
         // Verify size
-        if (job.expectedSize > 0) {
+        if (m_validateDownloads && job.expectedSize > 0) {
             QFileInfo tempFi(tempPath);
             const qint64 actualSize = tempFi.size();
             if (actualSize != job.expectedSize) {
@@ -363,7 +376,7 @@ void DownloadEngine::startJob(const DownloadJob& job) {
         }
 
         // Verify hash
-        if (!job.expectedHash.isEmpty()) {
+        if (m_validateDownloads && !job.expectedHash.isEmpty()) {
             const qint64 downloadedSize = QFileInfo(tempPath).size();
             emit progressChanged({job.id, downloadedSize, downloadedSize, 0,
                                   DownloadStatus::Verifying, {}});

@@ -4,7 +4,11 @@
 #include <QMainWindow>
 #include <QStackedWidget>
 
-namespace cub3::application { class Cub3App; }
+namespace cub3::application {
+class Cub3App;
+class LaunchEngine;
+}
+namespace cub3::auth { class AuthManager; }
 
 namespace cub3::ui::widgets {
 class SidebarButton;
@@ -52,11 +56,15 @@ signals:
 
 private slots:
     void onNavChanged(int index);
+    void onAccountRequested();
+    void onPlayRequested(const QString& versionId);
 
 private:
     void setupUi();
 
     application::Cub3App* m_app{nullptr};
+    application::LaunchEngine* m_launcher{nullptr};
+    auth::AuthManager* m_auth{nullptr};
 
     QWidget* m_centralWidget{nullptr};
     QStackedWidget* m_stack{nullptr};

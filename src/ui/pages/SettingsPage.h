@@ -30,7 +30,6 @@ public:
 private slots:
     void onJavaBrowse();
     void onDirBrowse();
-    void onRamChanged(int value);
     void onSave();
 
 private:
@@ -46,7 +45,7 @@ private:
     QSlider* m_ramMaxSlider{nullptr};
     QLabel* m_ramMinLabel{nullptr};
     QLabel* m_ramMaxLabel{nullptr};
-    QLabel* m_ramTotalLabel{nullptr};
+    QLabel* m_saveStatus{nullptr};
 
     // Directories
     QLineEdit* m_instancesDir{nullptr};
@@ -54,9 +53,6 @@ private:
     // Network
     QSpinBox* m_concurrencySpin{nullptr};
     QCheckBox* m_validateDownloadsCheck{nullptr};
-
-    // Appearance
-    QCheckBox* m_reducedFxCheck{nullptr};
 
     // Resolution
     QSpinBox* m_resolutionW{nullptr};

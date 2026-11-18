@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 120" role="img" aria-labelledby="title desc">
+  <title id="title">CUB3 Launcher — Isla</title>
+  <desc id="desc">Un bloque de césped flotante con CUB3 Launcher en tipografía geométrica.</desc>
+  <defs>
+    <linearGradient id="grass" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#80F06B"/><stop offset="1" stop-color="#27B84D"/></linearGradient>
+    <linearGradient id="earth" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#A96B42"/><stop offset="1" stop-color="#573A33"/></linearGradient>
+  </defs>
+  <g transform="translate(16 13)">
+    <path d="M44 4 83 25 44 47 5 25Z" fill="url(#grass)" stroke="#C3FF9C" stroke-width="3"/>
+    <path d="M5 25 44 47v43L5 68Z" fill="#76503D" stroke="#432F31" stroke-width="3"/>
+    <path d="M83 25 44 47v43l39-22Z" fill="url(#earth)" stroke="#432F31" stroke-width="3"/>
+    <path d="m18 32 8 5v9l-8-5Zm22 14 8 5v8l-8-5Zm25-7 7-4v8l-7 4ZM16 59l8 5v8l-8-5Zm48 0 8-5v8l-8 5Z" fill="#C78A53" opacity=".85"/>
+    <path d="m35 9 9-5 12 7-9 5Zm-13 7 8-5 10 6-8 5Z" fill="#C5FFAA" opacity=".8"/>
+  </g>
+  <text x="122" y="67" fill="#F7FAFF" font-family="Inter,Segoe UI,sans-serif" font-size="48" font-weight="850" letter-spacing="1">CUB3</text>
+  <text x="126" y="94" fill="#8F9DB4" font-family="Inter,Segoe UI,sans-serif" font-size="16" font-weight="650" letter-spacing="5">LAUNCHER</text>
+</svg>

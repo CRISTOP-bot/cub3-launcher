@@ -13,6 +13,7 @@
 #include <QTimer>
 #include <QDesktopServices>
 #include <QDateTime>
+#include <QSettings>
 #include <algorithm>
 #include <memory>
 
@@ -36,6 +37,25 @@ static const QString kProfileUrl =
 static const QString kScope =
     QStringLiteral("XboxLive.signin offline_access");
 
+namespace {
+QString configuredClientId() {
+    const QString environmentValue =
+        qEnvironmentVariable("CUB3_MICROSOFT_CLIENT_ID").trimmed();
+    if (!environmentValue.isEmpty())
+        return environmentValue;
+    const QString savedValue =
+        QSettings().value(QStringLiteral("auth/microsoftClientId")).toString().trimmed();
+    return savedValue.isEmpty()
+        ? cub3::core::meta::kMicrosoftClientId.toString() : savedValue;
+}
+
+bool hasConfiguredClientId() {
+    const QString id = configuredClientId();
+    return !id.isEmpty()
+        && id != QStringLiteral("00000000-0000-0000-0000-000000000000");
+}
+} // namespace
+
 MicrosoftAuth::MicrosoftAuth(network::HttpClient* http, QObject* parent)
     : QObject(parent)
     , m_http(http)
@@ -48,6 +68,12 @@ void MicrosoftAuth::login(
     std::function<void(const QString&)> onError)
 {
     CUB3_INFO(lcAuth) << "Starting Microsoft device code flow";
+    if (!hasConfiguredClientId()) {
+        onError(QStringLiteral(
+            "Microsoft sign-in is not configured. Set CUB3_MICROSOFT_CLIENT_ID "
+            "to the client ID of your Microsoft public-client app."));
+        return;
+    }
 
     requestDeviceCode(
         [this, onDeviceCode, onComplete, onError]
@@ -110,13 +136,19 @@ void MicrosoftAuth::refresh(const Account& account,
                             std::function<void(const Account&)> onComplete,
                             std::function<void(const QString&)> onError)
 {
+    if (!hasConfiguredClientId()) {
+        onError(QStringLiteral(
+            "Microsoft sign-in is not configured. Set CUB3_MICROSOFT_CLIENT_ID "
+            "to the client ID of your Microsoft public-client app."));
+        return;
+    }
     if (account.refreshToken.isEmpty()) {
         onError(QStringLiteral("No refresh token available"));
         return;
     }
 
     QUrlQuery params;
-    params.addQueryItem("client_id", cub3::core::meta::kMicrosoftClientId.toString());
+    params.addQueryItem("client_id", configuredClientId());
     params.addQueryItem("grant_type", "refresh_token");
     params.addQueryItem("refresh_token", account.refreshToken);
     params.addQueryItem("scope", kScope);
@@ -155,7 +187,7 @@ void MicrosoftAuth::requestDeviceCode(
     std::function<void(const QString&)> onError)
 {
     QUrlQuery params;
-    params.addQueryItem("client_id", cub3::core::meta::kMicrosoftClientId.toString());
+    params.addQueryItem("client_id", configuredClientId());
     params.addQueryItem("scope", kScope);
 
     QByteArray body = params.toString(QUrl::FullyEncoded).toUtf8();
@@ -199,7 +231,7 @@ void MicrosoftAuth::pollForToken(
     timer->setInterval(pollInterval * 1000);
 
     QUrlQuery params;
-    params.addQueryItem("client_id", cub3::core::meta::kMicrosoftClientId.toString());
+    params.addQueryItem("client_id", configuredClientId());
     params.addQueryItem("device_code", deviceCode);
     params.addQueryItem("grant_type", "urn:ietf:params:oauth:grant-type:device_code");
 
@@ -280,7 +312,13 @@ void MicrosoftAuth::authXboxLive(
     std::function<void(const QString&)> onError)
 {
     QJsonObject body;
-    body["RpsTicket"] = "d=" + microsoftToken;
+    body["Properties"] = QJsonObject{
+        {"AuthMethod", "RPS"},
+        {"SiteName", "user.auth.xboxlive.com"},
+        {"RpsTicket", "d=" + microsoftToken}
+    };
+    body["RelyingParty"] = "http://auth.xboxlive.com";
+    body["TokenType"] = "JWT";
 
     QHash<QString, QString> headers;
     headers["Accept"] = "application/json";
@@ -326,6 +364,8 @@ void MicrosoftAuth::authXSTS(
     userTokens.append(xblToken);
     properties["UserTokens"] = userTokens;
     body["Properties"] = properties;
+    body["RelyingParty"] = "rp://api.minecraftservices.com/";
+    body["TokenType"] = "JWT";
 
     QHash<QString, QString> headers;
     headers["Accept"] = "application/json";

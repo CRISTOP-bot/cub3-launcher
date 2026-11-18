@@ -48,13 +48,13 @@ namespace colors {
 // --- Sizing ---------------------------------------------------------------
 namespace sizes {
     // Window
-    inline constexpr int kWindowWidth   = 1180;
+    inline constexpr int kWindowWidth   = 1280;
     inline constexpr int kWindowHeight   = 760;
     inline constexpr int kWindowMinWidth  = 940;
     inline constexpr int kWindowMinHeight = 640;
 
     // Sidebar
-    inline constexpr int kSidebarWidth   = 198;
+    inline constexpr int kSidebarWidth   = 218;
 
     // Play button
     inline constexpr int kPlayButtonW    = 200;

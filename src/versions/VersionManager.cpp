@@ -242,7 +242,7 @@ void VersionManager::fetchVersionManifest(const QString& versionId,
 void VersionManager::resolveVersion(const QString& versionId,
     std::function<void(const QList<FileDescriptor>&)> onComplete)
 {
-    fetchVersionManifest(versionId, [onComplete](const QJsonDocument& doc) {
+    fetchVersionManifest(versionId, [this, onComplete](const QJsonDocument& doc) {
         QList<FileDescriptor> files;
 
         if (doc.isEmpty()) {
@@ -266,6 +266,8 @@ void VersionManager::resolveVersion(const QString& versionId,
         }
 
         // Libraries
+        const QString architecture = QSysInfo::currentCpuArchitecture().contains(
+            QStringLiteral("64")) ? QStringLiteral("64") : QStringLiteral("32");
         auto libraries = root.value("libraries").toArray();
         for (const auto& lib : libraries) {
             auto libObj = lib.toObject();
@@ -279,11 +281,31 @@ void VersionManager::resolveVersion(const QString& versionId,
             if (!artifact.isEmpty()) {
                 FileDescriptor fd;
                 fd.url = artifact.value("url").toString();
-                fd.path = "libraries/" + artifact.value("path").toString();
+                fd.path = QStringLiteral("libraries/") + artifact.value("path").toString();
                 fd.hash = artifact.value("sha1").toString();
                 fd.size = artifact.value("size").toVariant().toLongLong();
-                files.append(fd);
+                if (!fd.url.isEmpty() && !fd.path.endsWith('/'))
+                    files.append(fd);
             }
+
+#ifdef Q_OS_LINUX
+            const auto nativeMap = libObj.value("natives").toObject();
+            QString classifier = nativeMap.value(QStringLiteral("linux")).toString();
+            classifier.replace(QStringLiteral("${arch}"), architecture);
+            const auto nativeArtifact =
+                downloads.value("classifiers").toObject().value(classifier).toObject();
+            if (!nativeArtifact.isEmpty()) {
+                FileDescriptor fd;
+                fd.url = nativeArtifact.value("url").toString();
+                fd.path = QStringLiteral("libraries/")
+                    + nativeArtifact.value("path").toString();
+                fd.hash = nativeArtifact.value("sha1").toString();
+                fd.size = nativeArtifact.value("size").toVariant().toLongLong();
+                fd.native = true;
+                if (!fd.url.isEmpty() && !fd.path.endsWith('/'))
+                    files.append(fd);
+            }
+#endif
         }
 
         // Asset index
@@ -295,6 +317,61 @@ void VersionManager::resolveVersion(const QString& versionId,
             fd.hash = assetIndex.value("sha1").toString();
             fd.size = assetIndex.value("size").toVariant().toLongLong();
             files.append(fd);
+
+            const QJsonObject logFile = root.value(QStringLiteral("logging"))
+                .toObject().value(QStringLiteral("client")).toObject()
+                .value(QStringLiteral("file")).toObject();
+            if (!logFile.value(QStringLiteral("url")).toString().isEmpty()
+                && !logFile.value(QStringLiteral("id")).toString().isEmpty()) {
+                FileDescriptor logging;
+                logging.url = logFile.value(QStringLiteral("url")).toString();
+                logging.path = QStringLiteral("assets/log_configs/")
+                    + logFile.value(QStringLiteral("id")).toString();
+                logging.hash = logFile.value(QStringLiteral("sha1")).toString();
+                logging.size = logFile.value(QStringLiteral("size")).toVariant().toLongLong();
+                files.append(std::move(logging));
+            }
+
+            const QUrl indexUrl(assetIndex.value("url").toString());
+            if (!indexUrl.isValid()) {
+                onComplete({});
+                return;
+            }
+            m_http->get(indexUrl,
+                [files = std::move(files), onComplete]
+                (const QByteArray& data, int status) mutable {
+                if (status != 200 || data.isEmpty()) {
+                    onComplete({});
+                    return;
+                }
+
+                QJsonParseError error;
+                const QJsonDocument indexDoc = QJsonDocument::fromJson(data, &error);
+                const QJsonObject objects = indexDoc.object()
+                    .value(QStringLiteral("objects")).toObject();
+                if (error.error != QJsonParseError::NoError || objects.isEmpty()) {
+                    onComplete({});
+                    return;
+                }
+
+                for (auto it = objects.constBegin(); it != objects.constEnd(); ++it) {
+                    const QString hash = it.value().toObject()
+                        .value(QStringLiteral("hash")).toString();
+                    if (hash.size() != 40)
+                        continue;
+                    FileDescriptor object;
+                    object.url = QStringLiteral("https://resources.download.minecraft.net/%1/%2")
+                        .arg(hash.left(2), hash);
+                    object.path = QStringLiteral("assets/objects/%1/%2")
+                        .arg(hash.left(2), hash);
+                    object.hash = hash;
+                    object.size = it.value().toObject()
+                        .value(QStringLiteral("size")).toVariant().toLongLong();
+                    files.append(std::move(object));
+                }
+                onComplete(files);
+            });
+            return;
         }
 
         onComplete(files);

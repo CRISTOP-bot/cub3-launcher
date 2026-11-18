@@ -82,7 +82,7 @@ endif()
 # ---------------------------------------------------------------------------
 # Collect sources
 # ---------------------------------------------------------------------------
-file(GLOB_RECURSE CUB3_SOURCES
+file(GLOB_RECURSE CUB3_SOURCES CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp"
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
@@ -145,6 +145,20 @@ if(UNIX AND NOT APPLE)
     install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/assets/icons/cub3.svg
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/icons/hicolor/scalable/apps
     )
+
+    # Build a native Debian/Ubuntu package that registers CUB3 in the
+    # application menu and declares its shared-library dependencies.
+    set(CPACK_GENERATOR "DEB")
+    set(CPACK_PACKAGE_NAME "cub3-launcher")
+    set(CPACK_PACKAGE_VENDOR "CUB3")
+    set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "CUB3 Minecraft Launcher")
+    set(CPACK_PACKAGE_CONTACT "CUB3 Launcher maintainers")
+    set(CPACK_DEBIAN_PACKAGE_SECTION "games")
+    set(CPACK_DEBIAN_PACKAGE_MAINTAINER "CUB3 Launcher maintainers")
+    set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+    set(CPACK_PACKAGE_FILE_NAME
+        "cub3-launcher-${PROJECT_VERSION}-${CMAKE_SYSTEM_PROCESSOR}")
+    include(CPack)
 endif()
 
 # ---------------------------------------------------------------------------

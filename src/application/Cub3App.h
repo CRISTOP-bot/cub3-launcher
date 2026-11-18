@@ -22,7 +22,13 @@ namespace cub3::versions {
 class VersionManager;
 }
 
+namespace cub3::auth {
+class AuthManager;
+}
+
 namespace cub3::application {
+
+class LaunchEngine;
 
 /// Central orchestration object. Owns the major subsystems and
 /// wires them together. Each subsystem is created lazily — only
@@ -47,6 +53,8 @@ public:
     [[nodiscard]] network::HttpClient&     httpClient();
     [[nodiscard]] network::DownloadEngine& downloadEngine();
     [[nodiscard]] versions::VersionManager& versionManager();
+    [[nodiscard]] auth::AuthManager& authManager();
+    [[nodiscard]] LaunchEngine& launchEngine();
     [[nodiscard]] ui::windows::MainWindow* window() const { return m_window; }
 
 signals:
@@ -70,6 +78,8 @@ private:
     network::HttpClient*     m_http{nullptr};
     network::DownloadEngine* m_downloads{nullptr};
     versions::VersionManager* m_versions{nullptr};
+    auth::AuthManager* m_auth{nullptr};
+    LaunchEngine* m_launcher{nullptr};
     bool m_deferredInitialized{false};
 };
 

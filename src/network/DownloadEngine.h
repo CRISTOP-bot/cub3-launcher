@@ -68,6 +68,9 @@ public:
     /// Set maximum concurrent downloads.
     void setMaxConcurrent(int max);
 
+    /// Toggle size/hash checks before reusing and after downloading files.
+    void setValidateDownloads(bool enabled) { m_validateDownloads = enabled; }
+
     /// Submit a download job. Returns the job ID (or empty on invalid input).
     QString submit(const DownloadJob& job);
 
@@ -107,6 +110,7 @@ private:
 
     HttpClient* m_http;
     int m_maxConcurrent{4};
+    bool m_validateDownloads{true};
 
     struct ActiveJob {
         DownloadJob job;

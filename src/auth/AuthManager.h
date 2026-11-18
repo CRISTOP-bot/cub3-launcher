@@ -9,7 +9,6 @@
 #include "Account.h"
 
 namespace cub3::network { class HttpClient; }
-namespace cub3::storage  { class Database; }
 
 namespace cub3::auth {
 
@@ -20,17 +19,14 @@ class ElybyAuth;
 /// authentication providers. Stores accounts in the database.
 ///
 /// Design:
-///   - Tokens are stored encrypted in the database (never in plain text).
-///   - On startup, the active account is loaded from the database.
-///   - Token refresh is automatic and happens in the background.
+///   - Tokens live in memory only and are never written to disk.
+///   - Callers can refresh expiring session tokens asynchronously.
 ///   - The launcher never stores passwords.
 class AuthManager : public QObject {
     Q_OBJECT
 
 public:
-    explicit AuthManager(network::HttpClient* http,
-                          storage::Database* db,
-                          QObject* parent = nullptr);
+    explicit AuthManager(network::HttpClient* http, QObject* parent = nullptr);
 
     /// Start the Microsoft OAuth login flow.
     /// Opens the system browser for authentication.
@@ -59,14 +55,9 @@ public:
 signals:
     void accountChanged(const Account& account);
     void logoutComplete();
+    void microsoftDeviceCode(const QString& userCode, const QString& verificationUri);
 
 private:
-    void loadActiveAccount();
-    void saveAccount(const Account& account);
-    void setActiveAccount(int id);
-
-    network::HttpClient* m_http;
-    storage::Database* m_db;
     MicrosoftAuth* m_microsoft{nullptr};
     ElybyAuth* m_elyby{nullptr};
     Account m_currentAccount;

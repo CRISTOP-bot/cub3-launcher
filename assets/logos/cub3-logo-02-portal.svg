@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 440 120" role="img" aria-labelledby="title desc">
+  <title id="title">CUB3 Launcher — Portal</title>
+  <desc id="desc">Un portal cúbico verde y violeta representa el acceso a mundos de Minecraft.</desc>
+  <defs>
+    <linearGradient id="portal" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#55E978"/><stop offset=".55" stop-color="#20BA9B"/><stop offset="1" stop-color="#9273FF"/></linearGradient>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5" result="blur"/><feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <g transform="translate(18 13)" filter="url(#glow)">
+    <path d="M13 22 44 5l31 17v44L44 84 13 66Z" fill="#172334" stroke="url(#portal)" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M29 29 44 21l15 8v29l-15 9-15-9Z" fill="#8C6CFF" opacity=".83"/>
+    <path d="m13 22 31 17 31-17M44 39v45" fill="none" stroke="#B9FFD0" stroke-width="3" stroke-linejoin="round"/>
+    <path d="m35 42 9 5 9-5v11l-9 5-9-5Z" fill="#E8FFF1"/>
+  </g>
+  <text x="122" y="67" fill="#F7FAFF" font-family="Inter,Segoe UI,sans-serif" font-size="48" font-weight="850" letter-spacing="1">CUB3</text>
+  <text x="126" y="94" fill="#9BA8BE" font-family="Inter,Segoe UI,sans-serif" font-size="16" font-weight="650" letter-spacing="5">WORLD ACCESS</text>
+</svg>

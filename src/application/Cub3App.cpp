@@ -1,5 +1,6 @@
 // CUB3 Launcher - Application orchestration
 #include "Cub3App.h"
+#include "LaunchEngine.h"
 
 #include "core/Logger.h"
 #include "core/Performance.h"
@@ -11,8 +12,10 @@
 #include "network/HttpClient.h"
 #include "network/DownloadEngine.h"
 #include "versions/VersionManager.h"
+#include "auth/AuthManager.h"
 
 #include <QTimer>
+#include <QStandardPaths>
 #include <stdexcept>
 
 namespace cub3::application {
@@ -77,6 +80,11 @@ bool Cub3App::initStorage() {
         return false;
     }
     m_settings = new storage::Settings(*m_database, this);
+    if (m_settings->javaPath().trimmed().isEmpty()) {
+        const QString java = QStandardPaths::findExecutable(QStringLiteral("java"));
+        if (!java.isEmpty())
+            m_settings->setJavaPath(java);
+    }
     return true;
 }
 
@@ -87,6 +95,10 @@ void Cub3App::initNetwork() {
     CUB3_PERF_SCOPE("init_network");
     m_http = new network::HttpClient(this);
     m_downloads = new network::DownloadEngine(m_http, this);
+    if (m_settings) {
+        m_downloads->setMaxConcurrent(m_settings->maxConcurrentDownloads());
+        m_downloads->setValidateDownloads(m_settings->validateDownloads());
+    }
 }
 
 void Cub3App::deferredInit() {
@@ -136,6 +148,22 @@ versions::VersionManager& Cub3App::versionManager() {
     if (!m_versions)
         throw std::runtime_error("Version manager is unavailable");
     return *m_versions;
+}
+
+auth::AuthManager& Cub3App::authManager() {
+    if (!m_http)
+        initNetwork();
+    if (!m_auth)
+        m_auth = new auth::AuthManager(m_http, this);
+    return *m_auth;
+}
+
+LaunchEngine& Cub3App::launchEngine() {
+    if (!m_launcher) {
+        m_launcher = new LaunchEngine(&versionManager(), &downloadEngine(),
+                                      &httpClient(), &database(), &settings(), this);
+    }
+    return *m_launcher;
 }
 
 } // namespace cub3::application

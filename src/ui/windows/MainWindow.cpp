@@ -2,6 +2,9 @@
 #include "MainWindow.h"
 
 #include "application/Cub3App.h"
+#include "application/LaunchEngine.h"
+#include "auth/AuthManager.h"
+#include "core/AppMeta.h"
 #include "core/Performance.h"
 #include "core/Logger.h"
 #include "core/Paths.h"
@@ -22,12 +25,147 @@
 #include <QTimer>
 #include <QFile>
 #include <QMessageBox>
+#include <QMouseEvent>
+#include <QPainter>
+#include <QIcon>
+#include <QInputDialog>
+#include <QLineEdit>
+#include <QMenu>
+#include <QCursor>
+#include <QRegularExpression>
+#include <QSettings>
+#include <QSizeGrip>
+#include <QToolButton>
+#include <QWindow>
 
 namespace cub3::ui::windows {
+namespace {
+
+class WindowTitleBar final : public QWidget {
+public:
+    explicit WindowTitleBar(QMainWindow* window, QWidget* parent = nullptr)
+        : QWidget(parent)
+        , m_window(window)
+    {
+        setObjectName(QStringLiteral("WindowTitleBar"));
+        setFixedHeight(34);
+
+        auto* layout = new QHBoxLayout(this);
+        layout->setContentsMargins(14, 0, 8, 0);
+        layout->setSpacing(4);
+
+        auto* title = new QLabel(QStringLiteral("CUB3 Launcher"), this);
+        title->setObjectName(QStringLiteral("WindowTitleText"));
+        auto* icon = new QLabel(this);
+        icon->setPixmap(QIcon(QStringLiteral(":/icons/cub3.svg")).pixmap(18, 18));
+        icon->setFixedSize(18, 18);
+        layout->addWidget(icon);
+        layout->addWidget(title);
+        layout->addStretch(1);
+
+        auto* minimizeButton = makeControl(QStringLiteral("−"),
+                                            QStringLiteral("WindowControl"));
+        connect(minimizeButton, &QToolButton::clicked,
+                m_window, &QWidget::showMinimized);
+        layout->addWidget(minimizeButton);
+
+        m_maximizeButton = makeControl(QStringLiteral("□"),
+                                       QStringLiteral("WindowControl"));
+        connect(m_maximizeButton, &QToolButton::clicked, this, [this] {
+            toggleMaximized();
+        });
+        layout->addWidget(m_maximizeButton);
+
+        auto* closeButton = makeControl(QStringLiteral("×"),
+                                        QStringLiteral("WindowCloseButton"));
+        connect(closeButton, &QToolButton::clicked, m_window, &QWidget::close);
+        layout->addWidget(closeButton);
+    }
+
+protected:
+    void mousePressEvent(QMouseEvent* event) override {
+        if (event->button() != Qt::LeftButton || m_window->isMaximized()) {
+            QWidget::mousePressEvent(event);
+            return;
+        }
+
+        m_dragging = !(m_window->windowHandle() &&
+                       m_window->windowHandle()->startSystemMove());
+        m_dragOffset = event->globalPosition().toPoint()
+            - m_window->frameGeometry().topLeft();
+        event->accept();
+    }
+
+    void mouseMoveEvent(QMouseEvent* event) override {
+        if (m_dragging && (event->buttons() & Qt::LeftButton)) {
+            m_window->move(event->globalPosition().toPoint() - m_dragOffset);
+            event->accept();
+            return;
+        }
+        QWidget::mouseMoveEvent(event);
+    }
+
+    void mouseReleaseEvent(QMouseEvent* event) override {
+        m_dragging = false;
+        QWidget::mouseReleaseEvent(event);
+    }
+
+    void mouseDoubleClickEvent(QMouseEvent* event) override {
+        if (event->button() == Qt::LeftButton) {
+            toggleMaximized();
+            event->accept();
+            return;
+        }
+        QWidget::mouseDoubleClickEvent(event);
+    }
+
+private:
+    static QToolButton* makeControl(const QString& text, const QString& objectName) {
+        auto* button = new QToolButton();
+        button->setText(text);
+        button->setObjectName(objectName);
+        button->setFixedSize(38, 30);
+        button->setCursor(Qt::PointingHandCursor);
+        return button;
+    }
+
+    void toggleMaximized() {
+        if (m_window->isMaximized()) {
+            m_window->showNormal();
+            m_maximizeButton->setText(QStringLiteral("□"));
+        } else {
+            m_window->showMaximized();
+            m_maximizeButton->setText(QStringLiteral("❐"));
+        }
+    }
+
+    QMainWindow* m_window{nullptr};
+    QToolButton* m_maximizeButton{nullptr};
+    QPoint m_dragOffset;
+    bool m_dragging{false};
+};
+
+class BrandMark final : public QWidget {
+public:
+    explicit BrandMark(QWidget* parent = nullptr)
+        : QWidget(parent)
+    {
+        setFixedSize(180, 50);
+    }
+
+protected:
+    void paintEvent(QPaintEvent*) override {
+        QPainter painter(this);
+        QIcon(QStringLiteral(":/logos/cub3-primary.svg")).paint(&painter, rect());
+    }
+};
+
+} // namespace
 
 MainWindow::MainWindow(QWidget* parent)
     : QMainWindow(parent)
 {
+    setWindowFlags(Qt::Window | Qt::FramelessWindowHint);
     setWindowTitle(QStringLiteral("CUB3 Launcher"));
     setMinimumSize(theme::sizes::kWindowMinWidth, theme::sizes::kWindowMinHeight);
     resize(theme::sizes::kWindowWidth, theme::sizes::kWindowHeight);
@@ -49,12 +187,25 @@ void MainWindow::setupUi() {
     m_centralWidget = new QWidget(this);
     setCentralWidget(m_centralWidget);
 
-    auto* mainLayout = new QHBoxLayout(m_centralWidget);
+    auto* windowLayout = new QVBoxLayout(m_centralWidget);
+    windowLayout->setContentsMargins(0, 0, 0, 0);
+    windowLayout->setSpacing(0);
+
+    windowLayout->addWidget(new WindowTitleBar(this, m_centralWidget));
+    auto* contentWidget = new QWidget(m_centralWidget);
+    auto* mainLayout = new QHBoxLayout(contentWidget);
     mainLayout->setContentsMargins(0, 0, 0, 0);
     mainLayout->setSpacing(0);
+    windowLayout->addWidget(contentWidget, 1);
+
+    auto* gripLayout = new QHBoxLayout();
+    gripLayout->setContentsMargins(0, 0, 0, 0);
+    gripLayout->addStretch(1);
+    gripLayout->addWidget(new QSizeGrip(m_centralWidget), 0, Qt::AlignBottom | Qt::AlignRight);
+    windowLayout->addLayout(gripLayout);
 
     // --- Sidebar -------------------------------------------------------
-    m_sidebar = new QWidget(m_centralWidget);
+    m_sidebar = new QWidget(contentWidget);
     m_sidebar->setObjectName(QStringLiteral("Sidebar"));
     m_sidebar->setFixedWidth(theme::sizes::kSidebarWidth);
 
@@ -63,12 +214,12 @@ void MainWindow::setupUi() {
     sidebarLayout->setSpacing(0);
 
     // Brand
-    auto* logo = new QLabel(QStringLiteral("CUB3"), m_sidebar);
-    logo->setObjectName(QStringLiteral("SidebarLogo"));
-    sidebarLayout->addWidget(logo);
-    auto* logoCaption = new QLabel(QStringLiteral("GAME LAUNCHER"), m_sidebar);
-    logoCaption->setObjectName(QStringLiteral("SidebarSubtitle"));
-    sidebarLayout->addWidget(logoCaption);
+    auto* brandRow = new QWidget(m_sidebar);
+    auto* brandLayout = new QVBoxLayout(brandRow);
+    brandLayout->setContentsMargins(18, 24, 18, 18);
+    brandLayout->setSpacing(0);
+    brandLayout->addWidget(new BrandMark(brandRow), 0, Qt::AlignHCenter);
+    sidebarLayout->addWidget(brandRow);
 
     // Nav buttons
     m_btnDashboard = new widgets::SidebarButton(
@@ -106,7 +257,7 @@ void MainWindow::setupUi() {
     mainLayout->addWidget(m_sidebar);
 
     // --- Content area (stacked pages) ---------------------------------
-    m_stack = new QStackedWidget(m_centralWidget);
+    m_stack = new QStackedWidget(contentWidget);
     m_stack->setObjectName(QStringLiteral("ContentArea"));
 
     // Create dashboard immediately (it's the landing page)
@@ -116,18 +267,10 @@ void MainWindow::setupUi() {
     // Other pages are created lazily
     connect(m_dashboard, &pages::DashboardPage::profilesRequested,
             m_btnLibrary, &QPushButton::click);
+    connect(m_dashboard, &pages::DashboardPage::accountRequested,
+            this, &MainWindow::onAccountRequested);
     connect(m_dashboard, &pages::DashboardPage::playRequested,
-            this, [this](const QString& versionId) {
-        if (versionId.isEmpty()) {
-            QMessageBox::information(this, QStringLiteral("Selecciona una versión"),
-                                     QStringLiteral("No hay una versión disponible para jugar."));
-            return;
-        }
-        QMessageBox::information(
-            this, QStringLiteral("Lanzamiento no disponible"),
-            QStringLiteral("La versión %1 está seleccionada, pero el motor de lanzamiento aún no está disponible.")
-                .arg(versionId));
-    });
+            this, &MainWindow::onPlayRequested);
 
     mainLayout->addWidget(m_stack, 1);
 
@@ -175,6 +318,138 @@ void MainWindow::onNavChanged(int index) {
     default:
         return;
     }
+}
+
+void MainWindow::onAccountRequested() {
+    if (!m_app) {
+        QMessageBox::warning(this, QStringLiteral("Cuenta"),
+                             QStringLiteral("El servicio de cuentas no está disponible."));
+        return;
+    }
+
+    auto& manager = m_app->authManager();
+    if (m_auth != &manager) {
+        m_auth = &manager;
+        connect(m_auth, &auth::AuthManager::accountChanged,
+                m_dashboard, [this](const auth::Account& account) {
+            m_dashboard->setPlayerName(account.isValid() ? account.username : QString());
+        });
+        connect(m_auth, &auth::AuthManager::microsoftDeviceCode,
+                this, [this](const QString& code, const QString& uri) {
+            auto* dialog = new QMessageBox(
+                QMessageBox::Information,
+                QStringLiteral("Autoriza Microsoft"),
+                QStringLiteral("Código: %1\n\nSe abrió %2 en el navegador para completar el acceso.")
+                    .arg(code, uri),
+                QMessageBox::Ok, this);
+            dialog->setAttribute(Qt::WA_DeleteOnClose);
+            dialog->open();
+        });
+    }
+
+    QMenu menu(this);
+    QAction* microsoftAction =
+        menu.addAction(QStringLiteral("Iniciar sesión con Microsoft"));
+    QAction* elybyAction =
+        menu.addAction(QStringLiteral("Iniciar sesión con Ely.by"));
+    QAction* logoutAction = nullptr;
+    if (m_auth->isLoggedIn()) {
+        menu.addSeparator();
+        logoutAction = menu.addAction(QStringLiteral("Cerrar sesión"));
+    }
+
+    QAction* chosen = menu.exec(QCursor::pos());
+    if (chosen == microsoftAction) {
+        QSettings settings;
+        QString clientId = qEnvironmentVariable("CUB3_MICROSOFT_CLIENT_ID").trimmed();
+        if (clientId.isEmpty())
+            clientId = settings.value(QStringLiteral("auth/microsoftClientId")).toString().trimmed();
+        if (clientId.isEmpty()
+            || clientId == cub3::core::meta::kMicrosoftClientId.toString()) {
+            bool accepted = false;
+            clientId = QInputDialog::getText(
+                this, QStringLiteral("Configurar Microsoft"),
+                QStringLiteral("ID de cliente de tu aplicación pública de Microsoft:"),
+                QLineEdit::Normal, QString(), &accepted).trimmed();
+            if (!accepted)
+                return;
+            static const QRegularExpression clientIdPattern(
+                QStringLiteral("^[0-9A-Fa-f]{8}(-[0-9A-Fa-f]{4}){3}-[0-9A-Fa-f]{12}$"));
+            if (!clientIdPattern.match(clientId).hasMatch()) {
+                QMessageBox::warning(
+                    this, QStringLiteral("ID no válido"),
+                    QStringLiteral("El ID debe tener el formato GUID de una aplicación de Microsoft."));
+                return;
+            }
+            settings.setValue(QStringLiteral("auth/microsoftClientId"), clientId);
+            qputenv("CUB3_MICROSOFT_CLIENT_ID", clientId.toUtf8());
+        }
+        m_auth->loginMicrosoft({}, [this](const QString& error) {
+            QMessageBox::warning(this, QStringLiteral("Error de inicio de sesión"),
+                                 error);
+        });
+    } else if (chosen == elybyAction) {
+        bool accepted = false;
+        const QString username = QInputDialog::getText(
+            this, QStringLiteral("Iniciar sesión con Ely.by"),
+            QStringLiteral("Correo o nombre de usuario:"), QLineEdit::Normal,
+            QString(), &accepted).trimmed();
+        if (!accepted || username.isEmpty())
+            return;
+
+        const QString password = QInputDialog::getText(
+            this, QStringLiteral("Iniciar sesión con Ely.by"),
+            QStringLiteral("Contraseña:"), QLineEdit::Password,
+            QString(), &accepted);
+        if (!accepted || password.isEmpty())
+            return;
+
+        m_auth->loginElyby(username, password, {},
+            [this](const QString& error) {
+                QMessageBox::warning(this, QStringLiteral("Error de inicio de sesión"),
+                                     error);
+            });
+    } else if (chosen == logoutAction) {
+        m_auth->logout();
+    }
+}
+
+void MainWindow::onPlayRequested(const QString& versionId) {
+    if (!m_app) {
+        QMessageBox::warning(this, QStringLiteral("Iniciar juego"),
+                             QStringLiteral("El servicio del juego no está disponible."));
+        return;
+    }
+
+    auto& authManager = m_app->authManager();
+    if (!authManager.isLoggedIn()) {
+        QMessageBox::information(
+            this, QStringLiteral("Inicia sesión"),
+            QStringLiteral("Inicia sesión con tu cuenta Microsoft o Ely.by."));
+        return;
+    }
+
+    authManager.refreshIfNeeded([this, versionId, &authManager](bool valid) {
+        if (!valid) {
+            QMessageBox::warning(
+                this, QStringLiteral("Sesión expirada"),
+                QStringLiteral("No se pudo renovar la sesión. Inicia sesión de nuevo."));
+            return;
+        }
+
+        auto& launcher = m_app->launchEngine();
+        if (m_launcher != &launcher) {
+            m_launcher = &launcher;
+            connect(m_launcher, &application::LaunchEngine::statusChanged,
+                    m_dashboard, &pages::DashboardPage::setStatus);
+            connect(m_launcher, &application::LaunchEngine::launchFailed,
+                    this, [this](const QString& error) {
+                QMessageBox::warning(this, QStringLiteral("No se pudo iniciar Minecraft"),
+                                     error);
+            });
+        }
+        m_launcher->launch(versionId, authManager.currentAccount());
+    });
 }
 
 void MainWindow::setApp(application::Cub3App* app) {

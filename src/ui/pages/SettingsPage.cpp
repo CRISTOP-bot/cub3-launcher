@@ -17,6 +17,10 @@
 #include <QCheckBox>
 #include <QPushButton>
 #include <QFileDialog>
+#include <QScrollArea>
+#include <QFileInfo>
+#include <QDir>
+#include <QStyle>
 
 namespace cub3::ui::pages {
 
@@ -39,6 +43,20 @@ void SettingsPage::setupUi() {
     titleLabel->setObjectName(QStringLiteral("PageTitle"));
     layout->addWidget(titleLabel);
 
+    auto* subtitle = new QLabel(
+        QStringLiteral("Configura Java, memoria y descargas para tu juego."), this);
+    subtitle->setObjectName(QStringLiteral("PageSubtitle"));
+    layout->addWidget(subtitle);
+
+    auto* scroll = new QScrollArea(this);
+    scroll->setObjectName(QStringLiteral("SettingsScroll"));
+    scroll->setWidgetResizable(true);
+    scroll->setFrameShape(QFrame::NoFrame);
+    auto* body = new QWidget(scroll);
+    auto* bodyLayout = new QVBoxLayout(body);
+    bodyLayout->setContentsMargins(2, 2, 10, 8);
+    bodyLayout->setSpacing(theme::sizes::kSpacingMedium);
+
     // --- Java section ---
     auto* javaGroup = new QGroupBox(QStringLiteral("Java"), this);
     auto* javaLayout = new QFormLayout(javaGroup);
@@ -52,16 +70,20 @@ void SettingsPage::setupUi() {
     connect(javaBrowseBtn, &QPushButton::clicked, this, &SettingsPage::onJavaBrowse);
     javaLayout->addRow(QString(), javaBrowseBtn);
 
-    layout->addWidget(javaGroup);
+    javaGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    bodyLayout->addWidget(javaGroup);
 
     // --- RAM section ---
     auto* ramGroup = new QGroupBox(QStringLiteral("Memoria del juego"), this);
     auto* ramLayout = new QVBoxLayout(ramGroup);
     ramLayout->setSpacing(theme::sizes::kSpacingSmall);
 
-    m_ramTotalLabel = new QLabel(QStringLiteral("Define la memoria mínima y máxima para el juego."), ramGroup);
-    m_ramTotalLabel->setObjectName(QStringLiteral("Secondary"));
-    ramLayout->addWidget(m_ramTotalLabel);
+    auto* ramDescription = new QLabel(
+        QStringLiteral("Ajusta el mínimo y el máximo de memoria que recibe Minecraft."),
+        ramGroup);
+    ramDescription->setObjectName(QStringLiteral("Secondary"));
+    ramDescription->setWordWrap(true);
+    ramLayout->addWidget(ramDescription);
 
     // Min RAM
     auto* minRow = new QHBoxLayout();
@@ -100,7 +122,8 @@ void SettingsPage::setupUi() {
             m_ramMinSlider->setValue(v);
     });
 
-    layout->addWidget(ramGroup);
+    ramGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    bodyLayout->addWidget(ramGroup);
 
     // --- Directories section ---
     auto* dirGroup = new QGroupBox(QStringLiteral("Directorios"), this);
@@ -114,7 +137,8 @@ void SettingsPage::setupUi() {
     connect(dirBrowseBtn, &QPushButton::clicked, this, &SettingsPage::onDirBrowse);
     dirLayout->addRow(QString(), dirBrowseBtn);
 
-    layout->addWidget(dirGroup);
+    dirGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    bodyLayout->addWidget(dirGroup);
 
     // --- Network section ---
     auto* netGroup = new QGroupBox(QStringLiteral("Red"), this);
@@ -130,16 +154,13 @@ void SettingsPage::setupUi() {
     m_validateDownloadsCheck->setChecked(true);
     netLayout->addRow(QString(), m_validateDownloadsCheck);
 
-    layout->addWidget(netGroup);
+    netGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    bodyLayout->addWidget(netGroup);
 
-    // --- Appearance + Performance ---
-    auto* appGroup = new QGroupBox(QStringLiteral("Apariencia y rendimiento"), this);
+    // --- Resolution ---
+    auto* appGroup = new QGroupBox(QStringLiteral("Ventana del juego"), this);
     auto* appLayout = new QVBoxLayout(appGroup);
     appLayout->setSpacing(theme::sizes::kSpacingSmall);
-
-    m_reducedFxCheck = new QCheckBox(QStringLiteral("Reducir efectos (desactivar animaciones)"), appGroup);
-    appLayout->addWidget(m_reducedFxCheck);
-
     auto* resRow = new QHBoxLayout();
     resRow->addWidget(new QLabel(QStringLiteral("Resolución del juego:")));
     m_resolutionW = new QSpinBox(appGroup);
@@ -156,16 +177,23 @@ void SettingsPage::setupUi() {
     resRow->addStretch();
     appLayout->addLayout(resRow);
 
-    layout->addWidget(appGroup);
+    appGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    bodyLayout->addWidget(appGroup);
+    bodyLayout->addStretch(1);
+    scroll->setWidget(body);
+    layout->addWidget(scroll, 1);
 
-    // --- Save button ---
-    auto* saveBtn = new QPushButton(QStringLiteral("Guardar ajustes"), this);
+    // Keep save controls visible while the settings list scrolls.
+    auto* saveRow = new QHBoxLayout();
+    m_saveStatus = new QLabel(this);
+    m_saveStatus->setObjectName(QStringLiteral("SettingsSaveStatus"));
+    saveRow->addWidget(m_saveStatus, 1);
+    auto* saveBtn = new QPushButton(QStringLiteral("Guardar cambios"), this);
     saveBtn->setObjectName(QStringLiteral("Primary"));
-    saveBtn->setMaximumWidth(200);
+    saveBtn->setMinimumWidth(180);
     connect(saveBtn, &QPushButton::clicked, this, &SettingsPage::onSave);
-    layout->addWidget(saveBtn, 0, Qt::AlignLeft);
-
-    layout->addStretch();
+    saveRow->addWidget(saveBtn, 0, Qt::AlignRight);
+    layout->addLayout(saveRow);
 
     // Load current settings
     loadSettings();
@@ -179,13 +207,14 @@ void SettingsPage::loadSettings() {
     m_javaPath->setText(settings.javaPath());
     m_ramMinSlider->setValue(settings.ramMinMB());
     m_ramMaxSlider->setValue(settings.ramMaxMB());
+    m_ramMinLabel->setText(QString::number(m_ramMinSlider->value()));
+    m_ramMaxLabel->setText(QString::number(m_ramMaxSlider->value()));
     const QString instancesDir = settings.instancesDir();
     m_instancesDir->setText(instancesDir.isEmpty()
                                 ? cub3::core::Paths::instancesDir()
                                 : instancesDir);
     m_concurrencySpin->setValue(settings.maxConcurrentDownloads());
     m_validateDownloadsCheck->setChecked(settings.validateDownloads());
-    m_reducedFxCheck->setChecked(settings.reducedEffects());
     m_resolutionW->setValue(settings.resolutionWidth());
     m_resolutionH->setValue(settings.resolutionHeight());
 }
@@ -211,25 +240,51 @@ void SettingsPage::onDirBrowse() {
         m_instancesDir->setText(dir);
 }
 
-void SettingsPage::onRamChanged(int value) {
-    Q_UNUSED(value)
-}
-
 void SettingsPage::onSave() {
     if (!m_app)
         return;
 
+    const QString javaPath = m_javaPath->text().trimmed();
+    if (!javaPath.isEmpty()) {
+        const QFileInfo javaInfo(javaPath);
+        if (!javaInfo.isFile() || !javaInfo.isExecutable()) {
+            m_saveStatus->setProperty("state", "error");
+            m_saveStatus->setText(QStringLiteral("La ruta de Java no es ejecutable."));
+            m_saveStatus->style()->unpolish(m_saveStatus);
+            m_saveStatus->style()->polish(m_saveStatus);
+            return;
+        }
+    }
+
+    const QString instancesDir = QDir::cleanPath(
+        QDir(m_instancesDir->text().trimmed().isEmpty()
+                 ? cub3::core::Paths::instancesDir()
+                 : m_instancesDir->text().trimmed()).absolutePath());
+    const QFileInfo directoryInfo(instancesDir);
+    if (!directoryInfo.isDir() || !directoryInfo.isWritable()) {
+        m_saveStatus->setProperty("state", "error");
+        m_saveStatus->setText(QStringLiteral("La carpeta de perfiles no existe o no permite escribir."));
+        m_saveStatus->style()->unpolish(m_saveStatus);
+        m_saveStatus->style()->polish(m_saveStatus);
+        return;
+    }
+
     auto& settings = m_app->settings();
-    settings.setJavaPath(m_javaPath->text());
+    settings.setJavaPath(javaPath);
     settings.setRamMinMB(m_ramMinSlider->value());
     settings.setRamMaxMB(m_ramMaxSlider->value());
-    settings.setInstancesDir(m_instancesDir->text());
+    settings.setInstancesDir(instancesDir);
     settings.setMaxConcurrentDownloads(m_concurrencySpin->value());
     settings.setValidateDownloads(m_validateDownloadsCheck->isChecked());
-    settings.setReducedEffects(m_reducedFxCheck->isChecked());
     settings.setResolutionWidth(m_resolutionW->value());
     settings.setResolutionHeight(m_resolutionH->value());
     m_app->downloadEngine().setMaxConcurrent(m_concurrencySpin->value());
+    m_app->downloadEngine().setValidateDownloads(
+        m_validateDownloadsCheck->isChecked());
+    m_saveStatus->setProperty("state", "success");
+    m_saveStatus->setText(QStringLiteral("Ajustes guardados correctamente."));
+    m_saveStatus->style()->unpolish(m_saveStatus);
+    m_saveStatus->style()->polish(m_saveStatus);
 }
 
 } // namespace cub3::ui::pages

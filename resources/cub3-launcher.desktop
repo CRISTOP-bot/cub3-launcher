@@ -1,9 +1,16 @@
 [Desktop Entry]
 Type=Application
 Name=CUB3 Launcher
+Name[es]=CUB3 Launcher
+GenericName=Game Launcher
+GenericName[es]=Lanzador de juegos
 Comment=Lightweight Minecraft Launcher
+Comment[es]=Lanzador ligero para Minecraft
 Exec=cub3
+TryExec=cub3
 Icon=cub3
 Terminal=false
 Categories=Game;
+Keywords=minecraft;launcher;game;
+Keywords[es]=minecraft;lanzador;juego;
 StartupNotify=true

@@ -24,7 +24,7 @@ namespace cub3::auth {
 ///   7. Fetch player profile
 ///
 /// The system browser is opened for the user. No embedded browser.
-/// Tokens are stored encrypted in the database by AuthManager.
+/// AuthManager keeps tokens only in memory for the current process.
 class MicrosoftAuth : public QObject {
     Q_OBJECT
 
