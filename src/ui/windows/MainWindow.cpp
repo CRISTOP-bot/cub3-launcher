@@ -15,6 +15,7 @@
 #include "pages/DashboardPage.h"
 #include "pages/LibraryPage.h"
 #include "pages/DownloadsPage.h"
+#include "pages/ModsPage.h"
 #include "pages/SettingsPage.h"
 
 #include <QHBoxLayout>
@@ -228,6 +229,8 @@ void MainWindow::setupUi() {
         QStringLiteral(":/icons/library.svg"), QStringLiteral("Perfiles"), m_sidebar);
     m_btnDownloads = new widgets::SidebarButton(
         QStringLiteral(":/icons/downloads.svg"), QStringLiteral("Descargas"), m_sidebar);
+    m_btnMods = new widgets::SidebarButton(
+        QStringLiteral(":/icons/mods.svg"), QStringLiteral("Mods"), m_sidebar);
     m_btnSettings = new widgets::SidebarButton(
         QStringLiteral(":/icons/settings.svg"), QStringLiteral("Ajustes"), m_sidebar);
 
@@ -237,7 +240,8 @@ void MainWindow::setupUi() {
     navGroup->addButton(m_btnDashboard, 0);
     navGroup->addButton(m_btnLibrary, 1);
     navGroup->addButton(m_btnDownloads, 2);
-    navGroup->addButton(m_btnSettings, 3);
+    navGroup->addButton(m_btnMods, 3);
+    navGroup->addButton(m_btnSettings, 4);
 
     connect(navGroup, &QButtonGroup::idClicked, this, &MainWindow::onNavChanged);
 
@@ -245,6 +249,7 @@ void MainWindow::setupUi() {
     sidebarLayout->addWidget(m_btnDashboard);
     sidebarLayout->addWidget(m_btnLibrary);
     sidebarLayout->addWidget(m_btnDownloads);
+    sidebarLayout->addWidget(m_btnMods);
     sidebarLayout->addWidget(m_btnSettings);
     sidebarLayout->addStretch();
 
@@ -309,6 +314,13 @@ void MainWindow::onNavChanged(int index) {
         m_stack->setCurrentWidget(m_downloads);
         break;
     case 3:
+        if (!m_mods) {
+            m_mods = new pages::ModsPage(m_app, m_stack);
+            m_stack->addWidget(m_mods);
+        }
+        m_stack->setCurrentWidget(m_mods);
+        break;
+    case 4:
         if (!m_settings) {
             m_settings = new pages::SettingsPage(m_app, m_stack);
             m_stack->addWidget(m_settings);

@@ -5,6 +5,7 @@
         <file alias="icons/dashboard.svg">../assets/icons/dashboard.svg</file>
         <file alias="icons/library.svg">../assets/icons/library.svg</file>
         <file alias="icons/downloads.svg">../assets/icons/downloads.svg</file>
+        <file alias="icons/mods.svg">../assets/icons/mods.svg</file>
         <file alias="icons/settings.svg">../assets/icons/settings.svg</file>
         <file alias="icons/play.svg">../assets/icons/play.svg</file>
         <file alias="icons/refresh.svg">../assets/icons/refresh.svg</file>

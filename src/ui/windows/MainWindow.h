@@ -19,6 +19,7 @@ namespace cub3::ui::pages {
 class DashboardPage;
 class LibraryPage;
 class DownloadsPage;
+class ModsPage;
 class SettingsPage;
 }
 
@@ -74,12 +75,14 @@ private:
     widgets::SidebarButton* m_btnDashboard{nullptr};
     widgets::SidebarButton* m_btnLibrary{nullptr};
     widgets::SidebarButton* m_btnDownloads{nullptr};
+    widgets::SidebarButton* m_btnMods{nullptr};
     widgets::SidebarButton* m_btnSettings{nullptr};
 
     // Pages (lazily created)
     pages::DashboardPage* m_dashboard{nullptr};
     pages::LibraryPage*   m_library{nullptr};
     pages::DownloadsPage* m_downloads{nullptr};
+    pages::ModsPage* m_mods{nullptr};
     pages::SettingsPage*  m_settings{nullptr};
 
     bool m_firstShow{true};
