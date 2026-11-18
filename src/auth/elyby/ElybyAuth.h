@@ -19,7 +19,7 @@ namespace cub3::auth {
 ///   3. Validate token periodically with /auth/validate
 ///   4. Refresh with /auth/refresh when needed
 ///
-/// AuthManager keeps tokens only in memory for the current process.
+/// AuthManager persists session tokens in the system credential store.
 /// Passwords are NEVER stored.
 class ElybyAuth : public QObject {
     Q_OBJECT

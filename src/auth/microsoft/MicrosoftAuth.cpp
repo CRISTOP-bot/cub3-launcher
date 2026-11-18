@@ -90,19 +90,25 @@ void MicrosoftAuth::login(
             m_pollInterval = interval;
             pollForToken(deviceCode, interval, expiresIn,
                 [this, onComplete, onError]
-                (const QString& msToken, const QString& refreshToken) {
+                (const QString& msToken, const QString& refreshToken,
+                 int accessTokenExpiresIn) {
                     // Got Microsoft tokens — proceed to Xbox Live
                     authXboxLive(msToken,
-                        [this, onComplete, onError, msToken, refreshToken]
+                        [this, onComplete, onError, msToken, refreshToken,
+                         accessTokenExpiresIn]
                         (const QString& xblToken, const QString& userHash) {
                             authXSTS(xblToken,
-                                [this, onComplete, onError, userHash, msToken, refreshToken]
+                                [this, onComplete, onError, userHash, msToken,
+                                 refreshToken, accessTokenExpiresIn]
                                 (const QString& xstsToken) {
                                     authMinecraft(xstsToken, userHash,
-                                        [this, onComplete, onError, msToken, refreshToken, xstsToken, userHash]
+                                        [this, onComplete, onError, msToken,
+                                         refreshToken, accessTokenExpiresIn,
+                                         xstsToken, userHash]
                                         (const QString& mcToken) {
                                             fetchProfile(mcToken,
-                                                [this, onComplete, onError, mcToken, refreshToken]
+                                                [this, onComplete, onError, mcToken, refreshToken,
+                                                 accessTokenExpiresIn]
                                                 (const QString& username,
                                                  const QString& uuid,
                                                  const QString& skinUrl) {
@@ -114,7 +120,7 @@ void MicrosoftAuth::login(
                                                     account.refreshToken = refreshToken;
                                                     account.skinUrl = skinUrl;
                                                     account.expiresAt =
-                                                        QDateTime::currentDateTime().addSecs(86400); // 24h
+                                                        QDateTime::currentDateTime().addSecs(accessTokenExpiresIn);
                                                     CUB3_INFO(lcAuth) << "Microsoft auth complete:"
                                                                       << username;
                                                     onComplete(account);
@@ -166,19 +172,46 @@ void MicrosoftAuth::refresh(const Account& account,
             auto doc = QJsonDocument::fromJson(data);
             auto obj = doc.object();
 
-            Account refreshed = account;
-            refreshed.accessToken = obj.value("access_token").toString();
-            if (refreshed.accessToken.isEmpty()) {
+            const QString microsoftAccessToken = obj.value("access_token").toString();
+            if (microsoftAccessToken.isEmpty()) {
                 onError(QStringLiteral("Token refresh response did not contain an access token"));
                 return;
             }
             const QString refreshToken = obj.value("refresh_token").toString();
-            if (!refreshToken.isEmpty())
-                refreshed.refreshToken = refreshToken;
-            int expiresIn = obj.value("expires_in").toInt(86400);
-            refreshed.expiresAt = QDateTime::currentDateTime().addSecs(expiresIn);
+            const int expiresIn =
+                std::clamp(obj.value("expires_in").toInt(3600), 1, 86400);
 
-            onComplete(refreshed);
+            authXboxLive(microsoftAccessToken,
+                [this, account, refreshToken, expiresIn, onComplete, onError]
+                (const QString& xblToken, const QString& userHash) {
+                    authXSTS(xblToken,
+                        [this, account, refreshToken, expiresIn, userHash,
+                         onComplete, onError](const QString& xstsToken) {
+                            authMinecraft(xstsToken, userHash,
+                                [this, account, refreshToken, expiresIn,
+                                 onComplete, onError](const QString& minecraftToken) {
+                                    fetchProfile(minecraftToken,
+                                        [account, refreshToken, expiresIn,
+                                         minecraftToken, onComplete]
+                                        (const QString& username, const QString& uuid,
+                                         const QString& skinUrl) {
+                                            Account refreshed = account;
+                                            refreshed.accessToken = minecraftToken;
+                                            if (!refreshToken.isEmpty())
+                                                refreshed.refreshToken = refreshToken;
+                                            if (!username.isEmpty())
+                                                refreshed.username = username;
+                                            if (!uuid.isEmpty())
+                                                refreshed.uuid = uuid;
+                                            if (!skinUrl.isEmpty())
+                                                refreshed.skinUrl = skinUrl;
+                                            refreshed.expiresAt =
+                                                QDateTime::currentDateTime().addSecs(expiresIn);
+                                            onComplete(refreshed);
+                                        }, onError);
+                                }, onError);
+                        }, onError);
+                }, onError);
         }, headers);
 }
 
@@ -221,7 +254,7 @@ void MicrosoftAuth::requestDeviceCode(
 
 void MicrosoftAuth::pollForToken(
     const QString& deviceCode, int interval, int expiresIn,
-    std::function<void(const QString&, const QString&)> onComplete,
+    std::function<void(const QString&, const QString&, int)> onComplete,
     std::function<void(const QString&)> onError)
 {
     int attempts = 0;
@@ -270,8 +303,10 @@ void MicrosoftAuth::pollForToken(
                 timer->stop();
                 timer->deleteLater();
                 QString refreshToken = obj.value("refresh_token").toString();
+                const int accessTokenExpiresIn =
+                    std::clamp(obj.value("expires_in").toInt(3600), 1, 86400);
                 CUB3_INFO(lcAuth) << "Microsoft token obtained";
-                onComplete(accessToken, refreshToken);
+                onComplete(accessToken, refreshToken, accessTokenExpiresIn);
             } else if (error == "authorization_pending") {
                 *requestPending = false;
                 // Keep polling — do nothing

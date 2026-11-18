@@ -4,14 +4,24 @@
 #include "auth/elyby/ElybyAuth.h"
 #include "auth/microsoft/MicrosoftAuth.h"
 #include "network/HttpClient.h"
+#include "core/Logger.h"
+
+#include <qt6keychain/keychain.h>
+#include <QJsonDocument>
+#include <QJsonParseError>
 
 namespace cub3::auth {
+namespace {
+const QString kCredentialService = QStringLiteral("CUB3 Launcher");
+const QString kActiveAccountKey = QStringLiteral("active-account");
+}
 
 AuthManager::AuthManager(network::HttpClient* http, QObject* parent)
     : QObject(parent)
     , m_microsoft(new MicrosoftAuth(http, this))
     , m_elyby(new ElybyAuth(http, this))
 {
+    restoreSession();
 }
 
 void AuthManager::loginMicrosoft(
@@ -25,6 +35,7 @@ void AuthManager::loginMicrosoft(
         [this, onComplete](const Account& account) {
             m_currentAccount = account;
             emit accountChanged(m_currentAccount);
+            persistSession();
             if (onComplete)
                 onComplete(m_currentAccount);
         },
@@ -43,6 +54,7 @@ void AuthManager::loginElyby(
         [this, onComplete](const Account& account) {
             m_currentAccount = account;
             emit accountChanged(m_currentAccount);
+            persistSession();
             if (onComplete)
                 onComplete(m_currentAccount);
         },
@@ -55,7 +67,103 @@ void AuthManager::loginElyby(
 void AuthManager::logout() {
     m_currentAccount = Account{};
     emit accountChanged(m_currentAccount);
+    removePersistedSession();
     emit logoutComplete();
+}
+
+void AuthManager::restoreSession() {
+    auto* job = new QKeychain::ReadPasswordJob(kCredentialService, this);
+    job->setKey(kActiveAccountKey);
+    connect(job, &QKeychain::Job::finished, this, [this](QKeychain::Job* finished) {
+        auto* readJob = qobject_cast<QKeychain::ReadPasswordJob*>(finished);
+        if (finished->error() == QKeychain::EntryNotFound) {
+            finishSessionRestore();
+            return;
+        }
+        if (finished->error() != QKeychain::NoError || !readJob) {
+            CUB3_WARN(lcAuth) << "Could not restore saved account from system keychain:"
+                              << finished->errorString();
+            emit credentialStorageError(finished->errorString());
+            finishSessionRestore();
+            return;
+        }
+
+        QJsonParseError parseError;
+        const auto document = QJsonDocument::fromJson(
+            readJob->textData().toUtf8(), &parseError);
+        const auto object = document.object();
+        const auto provider = object.value(QStringLiteral("provider")).toString();
+        if (parseError.error != QJsonParseError::NoError || !document.isObject()
+            || (provider != QStringLiteral("microsoft")
+                && provider != QStringLiteral("elyby"))) {
+            emit credentialStorageError(
+                QStringLiteral("La cuenta guardada no se pudo leer correctamente."));
+            removePersistedSession();
+            finishSessionRestore();
+            return;
+        }
+
+        m_currentAccount = Account::fromJson(object);
+        if (m_currentAccount.username.isEmpty()
+            || m_currentAccount.accessToken.isEmpty()) {
+            m_currentAccount = Account{};
+            removePersistedSession();
+            finishSessionRestore();
+            return;
+        }
+
+        // Refresh expired tokens before exposing the restored account to the UI.
+        if (m_currentAccount.needsRefresh() || !m_currentAccount.isValid()) {
+            refreshIfNeeded([this](bool refreshed) {
+                if (refreshed)
+                    persistSession();
+                finishSessionRestore();
+            });
+            return;
+        }
+
+        finishSessionRestore();
+    });
+    job->start();
+}
+
+void AuthManager::persistSession() {
+    if (m_currentAccount.username.isEmpty() || m_currentAccount.accessToken.isEmpty())
+        return;
+
+    auto* job = new QKeychain::WritePasswordJob(kCredentialService, this);
+    job->setKey(kActiveAccountKey);
+    job->setInsecureFallback(false);
+    job->setTextData(QString::fromUtf8(
+        QJsonDocument(m_currentAccount.toJson()).toJson(QJsonDocument::Compact)));
+    connect(job, &QKeychain::Job::finished, this, [this](QKeychain::Job* finished) {
+        if (finished->error() != QKeychain::NoError) {
+            CUB3_WARN(lcAuth) << "Could not save account in system keychain:"
+                              << finished->errorString();
+            emit credentialStorageError(finished->errorString());
+        }
+    });
+    job->start();
+}
+
+void AuthManager::removePersistedSession() {
+    auto* job = new QKeychain::DeletePasswordJob(kCredentialService, this);
+    job->setKey(kActiveAccountKey);
+    connect(job, &QKeychain::Job::finished, this, [this](QKeychain::Job* finished) {
+        if (finished->error() != QKeychain::NoError
+            && finished->error() != QKeychain::EntryNotFound) {
+            CUB3_WARN(lcAuth) << "Could not remove saved account from system keychain:"
+                              << finished->errorString();
+            emit credentialStorageError(finished->errorString());
+        }
+    });
+    job->start();
+}
+
+void AuthManager::finishSessionRestore() {
+    m_restoring = false;
+    emit accountChanged(m_currentAccount);
+    emit sessionRestoreFinished(m_currentAccount.isValid());
 }
 
 void AuthManager::refreshIfNeeded(std::function<void(bool)> onComplete) {
@@ -74,6 +182,7 @@ void AuthManager::refreshIfNeeded(std::function<void(bool)> onComplete) {
     const auto finish = [this, onComplete](const Account& account) {
         m_currentAccount = account;
         emit accountChanged(m_currentAccount);
+        persistSession();
         if (onComplete)
             onComplete(m_currentAccount.isValid());
     };

@@ -31,6 +31,7 @@ el manifiesto solicita Java 25.
 ## Funciones
 
 - Inicio de sesión con Microsoft y Ely.by.
+- Restauración automática de sesión desde el llavero seguro del sistema.
 - Instalación y ejecución de versiones vanilla.
 - Feed de noticias oficial de Minecraft.
 - Preferencias de Java, memoria, resolución, rutas y descargas.
@@ -46,6 +47,7 @@ para conocer el estado revisado.
 
 - CMake 3.21 o posterior y un compilador C++20.
 - Qt 6 con Widgets, Network, Sql y Concurrent.
+- QtKeychain para guardar la sesión de forma segura en el sistema.
 - SQLite y el controlador Qt SQLite.
 - Java compatible con la versión de Minecraft que quieras ejecutar.
 - `unzip` para extraer bibliotecas nativas en Linux.
@@ -53,7 +55,7 @@ para conocer el estado revisado.
 En Debian o Ubuntu, instala las dependencias principales:
 
 ```sh
-sudo apt install build-essential cmake qt6-base-dev libqt6sql6-sqlite
+sudo apt install build-essential cmake qt6-base-dev libqt6sql6-sqlite qtkeychain-qt6-dev
 ```
 
 Configura, compila y ejecuta:
@@ -74,29 +76,30 @@ El paquete se genera en `build/`.
 
 ## Flujo de desarrollo
 
-**Todo cambio debe terminar en `dev`: código, correcciones, sitio web y
-documentación.** `dev` es la rama predeterminada y está protegida: trabaja en
-una rama corta y abre un PR hacia `dev`. No confirmes directamente en `dev` ni
-en `main`; esta última queda reservada para versiones estables.
+**Todo cambio regular debe terminar en `dev`: código, correcciones, sitio web y
+documentación.** `dev` es la rama activa y predeterminada. `main` está protegida:
+no hagas commits directos allí; se reserva para promociones estables mediante
+PR.
 
 ```sh
 git clone https://github.com/CRISTOP-bot/cub3-launcher.git
 cd cub3-launcher
 git switch dev
-git switch -c tipo/descripcion-corta
 ```
 
-Lee [`CONTRIBUTING.md`](CONTRIBUTING.md) antes de enviar cambios. Los PR deben
-tener como destino `dev`.
+Puedes trabajar directamente en `dev` o abrir un PR con destino `dev`. Lee
+[`CONTRIBUTING.md`](CONTRIBUTING.md) antes de enviar cambios.
 
 ## Datos y privacidad
 
 La base de datos y las instancias se guardan en el directorio de datos de
 usuario de Qt (`cub3-launcher`). La caché de noticias e imágenes usa el
-directorio de caché de usuario. Microsoft requiere un ID de cliente de una
-aplicación pública configurado en `CUB3_MICROSOFT_CLIENT_ID` o en las
-preferencias de CUB3. No incluyas credenciales, tokens ni secretos en commits,
-capturas o reportes públicos.
+directorio de caché de usuario. Los tokens de sesión se guardan en el llavero
+seguro del sistema; las contraseñas no se guardan. Si el sistema no tiene un
+llavero disponible, la cuenta solo estará activa hasta cerrar el launcher.
+Microsoft requiere un ID de cliente de una aplicación pública configurado en
+`CUB3_MICROSOFT_CLIENT_ID` o en las preferencias de CUB3. No incluyas
+credenciales, tokens ni secretos en commits, capturas o reportes públicos.
 
 ## Estructura del repositorio
 

@@ -328,24 +328,13 @@ void MainWindow::onAccountRequested() {
     }
 
     auto& manager = m_app->authManager();
-    if (m_auth != &manager) {
-        m_auth = &manager;
-        connect(m_auth, &auth::AuthManager::accountChanged,
-                m_dashboard, [this](const auth::Account& account) {
-            m_dashboard->setPlayerName(account.isValid() ? account.username : QString());
-        });
-        connect(m_auth, &auth::AuthManager::microsoftDeviceCode,
-                this, [this](const QString& code, const QString& uri) {
-            auto* dialog = new QMessageBox(
-                QMessageBox::Information,
-                QStringLiteral("Autoriza Microsoft"),
-                QStringLiteral("Código: %1\n\nSe abrió %2 en el navegador para completar el acceso.")
-                    .arg(code, uri),
-                QMessageBox::Ok, this);
-            dialog->setAttribute(Qt::WA_DeleteOnClose);
-            dialog->open();
-        });
+    if (manager.isRestoring()) {
+        QMessageBox::information(
+            this, QStringLiteral("Cuenta"),
+            QStringLiteral("Estamos restaurando tu cuenta. Inténtalo de nuevo en un momento."));
+        return;
     }
+    m_auth = &manager;
 
     QMenu menu(this);
     QAction* microsoftAction =
@@ -422,6 +411,12 @@ void MainWindow::onPlayRequested(const QString& versionId) {
     }
 
     auto& authManager = m_app->authManager();
+    if (authManager.isRestoring()) {
+        QMessageBox::information(
+            this, QStringLiteral("Iniciar juego"),
+            QStringLiteral("Estamos restaurando tu cuenta. Inténtalo de nuevo en un momento."));
+        return;
+    }
     if (!authManager.isLoggedIn()) {
         QMessageBox::information(
             this, QStringLiteral("Inicia sesión"),
@@ -456,6 +451,33 @@ void MainWindow::setApp(application::Cub3App* app) {
     m_app = app;
     if (m_dashboard)
         m_dashboard->setApp(app);
+    if (!m_app)
+        return;
+
+    m_auth = &m_app->authManager();
+    connect(m_auth, &auth::AuthManager::accountChanged,
+            m_dashboard, [this](const auth::Account& account) {
+        m_dashboard->setPlayerName(account.username);
+    });
+    connect(m_auth, &auth::AuthManager::microsoftDeviceCode,
+            this, [this](const QString& code, const QString& uri) {
+        auto* dialog = new QMessageBox(
+            QMessageBox::Information,
+            QStringLiteral("Autoriza Microsoft"),
+            QStringLiteral("Código: %1\n\nSe abrió %2 en el navegador para completar el acceso.")
+                .arg(code, uri),
+            QMessageBox::Ok, this);
+        dialog->setAttribute(Qt::WA_DeleteOnClose);
+        dialog->open();
+    });
+    connect(m_auth, &auth::AuthManager::credentialStorageError,
+            this, [this](const QString& error) {
+        QMessageBox::warning(
+            this, QStringLiteral("No se pudo acceder a la cuenta guardada"),
+            QStringLiteral("No se pudo acceder al llavero seguro del sistema. "
+                           "Es posible que debas iniciar sesión de nuevo; la contraseña nunca se guarda.\n\n%1")
+                .arg(error));
+    });
 }
 
 void MainWindow::closeEvent(QCloseEvent* event) {

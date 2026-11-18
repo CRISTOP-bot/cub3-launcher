@@ -8,10 +8,10 @@ description: Follow CUB3's experimental project rules when changing code, docs, 
 1. Lee `AGENTS.md` y las partes pertinentes de `CONTRIBUTING.md`.
 2. Comprueba el estado del árbol y la rama actual. Conserva cualquier trabajo
    local existente.
-3. Basa una rama corta en `origin/dev`. Todo cambio de código, documentación,
-   recursos y web se propone mediante un PR a `dev`.
-4. No hagas commits ni pushes directamente a `dev` o `main`. `dev` requiere PR;
-   `main` se reserva para promociones estables autorizadas por el mantenedor.
+3. Trabaja en `dev` o basa una rama corta en `origin/dev`. Todo cambio regular
+   de código, documentación, recursos y web termina en `dev`.
+4. No hagas commits ni pushes directamente a `main`: está protegida y se
+   reserva para promociones estables mediante PR.
 5. Describe la validación que realmente se ejecutó. No afirmes que una
    comprobación pasó si no se ejecutó; no hay que inventar pruebas.
 6. Indica riesgos y limitaciones. CUB3 tiene apenas unos días de desarrollo,

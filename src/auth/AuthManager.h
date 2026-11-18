@@ -16,10 +16,10 @@ class MicrosoftAuth;
 class ElybyAuth;
 
 /// Central authentication manager. Coordinates Microsoft and Ely.by
-/// authentication providers. Stores accounts in the database.
+/// authentication providers and restores the active session from the OS keychain.
 ///
 /// Design:
-///   - Tokens live in memory only and are never written to disk.
+///   - Passwords are never persisted; session tokens use the OS credential store.
 ///   - Callers can refresh expiring session tokens asynchronously.
 ///   - The launcher never stores passwords.
 class AuthManager : public QObject {
@@ -48,6 +48,9 @@ public:
     /// Check if a user is logged in.
     [[nodiscard]] bool isLoggedIn() const { return m_currentAccount.isValid(); }
 
+    /// True while the saved session is being read and validated.
+    [[nodiscard]] bool isRestoring() const { return m_restoring; }
+
     /// Refresh the current account's tokens if needed.
     /// Returns true if the account was valid or was refreshed successfully.
     void refreshIfNeeded(std::function<void(bool)> onComplete);
@@ -56,11 +59,19 @@ signals:
     void accountChanged(const Account& account);
     void logoutComplete();
     void microsoftDeviceCode(const QString& userCode, const QString& verificationUri);
+    void sessionRestoreFinished(bool hasSession);
+    void credentialStorageError(const QString& error);
 
 private:
+    void restoreSession();
+    void persistSession();
+    void removePersistedSession();
+    void finishSessionRestore();
+
     MicrosoftAuth* m_microsoft{nullptr};
     ElybyAuth* m_elyby{nullptr};
     Account m_currentAccount;
+    bool m_restoring{true};
 };
 
 } // namespace cub3::auth

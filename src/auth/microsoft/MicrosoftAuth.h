@@ -24,7 +24,7 @@ namespace cub3::auth {
 ///   7. Fetch player profile
 ///
 /// The system browser is opened for the user. No embedded browser.
-/// AuthManager keeps tokens only in memory for the current process.
+/// AuthManager persists session tokens in the system credential store.
 class MicrosoftAuth : public QObject {
     Q_OBJECT
 
@@ -56,7 +56,8 @@ private:
 
     void pollForToken(const QString& deviceCode, int interval, int expiresIn,
                       std::function<void(const QString& accessToken,
-                                           const QString& refreshToken)> onComplete,
+                                           const QString& refreshToken,
+                                           int accessTokenExpiresIn)> onComplete,
                       std::function<void(const QString&)> onError);
 
     void authXboxLive(const QString& microsoftToken,

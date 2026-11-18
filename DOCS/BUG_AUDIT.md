@@ -28,8 +28,11 @@ Minecraft. Validación de compilación Release y revisión de formato con
 
 ## Limitaciones conocidas
 
-- La sesión de cuenta no se conserva al cerrar el launcher; hay que volver a
-  iniciar sesión en el siguiente arranque.
+- Las sesiones de Microsoft y Ely.by se conservan en el llavero seguro del
+  sistema. Si no hay un servicio de credenciales disponible o el usuario
+  deniega el acceso, la sesión dura solo hasta cerrar el launcher.
+- Los tokens son secretos locales protegidos por el llavero del sistema. No se
+  guardan contraseñas de Microsoft ni de Ely.by.
 - Microsoft requiere configurar un ID de cliente de una aplicación pública.
 - La biblioteca muestra instalaciones vanilla; crear instancias con Fabric,
   Forge u otros cargadores todavía no está implementado.
