@@ -350,9 +350,9 @@ void showQuickTutorial(QWidget* parent) {
         next->setVisible(index + 1 < pages->count());
         finish->setVisible(index + 1 == pages->count());
     };
-    connect(back, &QPushButton::clicked, &dialog, [=] { update(qMax(0, pages->currentIndex() - 1)); });
-    connect(next, &QPushButton::clicked, &dialog, [=] { update(qMin(pages->count() - 1, pages->currentIndex() + 1)); });
-    connect(finish, &QPushButton::clicked, &dialog, &QDialog::accept);
+    QObject::connect(back, &QPushButton::clicked, &dialog, [=] { update(qMax(0, pages->currentIndex() - 1)); });
+    QObject::connect(next, &QPushButton::clicked, &dialog, [=] { update(qMin(pages->count() - 1, pages->currentIndex() + 1)); });
+    QObject::connect(finish, &QPushButton::clicked, &dialog, &QDialog::accept);
     update(0);
     dialog.exec();
 }
