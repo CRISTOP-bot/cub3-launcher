@@ -65,7 +65,7 @@ jobs:
             echo "Qt platform plugins are missing from the package dependencies" >&2
             exit 1
           }
-          apt-get install -y "$package"
+          apt-get install -y "./$package"
           set +e
           QT_QPA_PLATFORM=offscreen timeout --kill-after=2s 8s cub3 > build/package-smoke.log 2>&1
           smoke_status=$?
