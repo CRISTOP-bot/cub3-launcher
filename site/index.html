@@ -229,7 +229,7 @@
           <p>El paquete declara sus bibliotecas y los requisitos de ejecución; al instalar el .deb con APT, el sistema instala las dependencias declaradas que falten.</p>
         </div>
         <ul>
-          <li><b>Incluidas en Depends:</b> bibliotecas Qt 6 y del sistema detectadas al empaquetar, plugin Qt SQLite y unzip.</li>
+          <li><b>Incluidas en Depends:</b> bibliotecas Qt 6, plugin de plataforma Qt (QPA), plugin SQLite y unzip. El build de Debian ahora comprueba en CI que el paquete instalado pueda iniciar en modo de prueba sin pantalla.</li>
           <li><b>Recomendada:</b> Java Runtime headless; APT la instala como recomendación por defecto.</li>
           <li><b>Windows:</b> ZIP portable de desarrollo x64; requiere Windows 10 1809 o posterior o Windows 11. Descarga el artefacto desde Actions; se conserva 30 días.</li>
           <li><b>Compatibilidad Linux:</b> paquete construido en Debian 12; no lo instales en Ubuntu u otra distribución sin verificar primero sus dependencias.</li>

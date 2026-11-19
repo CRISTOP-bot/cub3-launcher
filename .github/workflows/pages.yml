@@ -61,6 +61,24 @@ jobs:
             *+dev.*) ;;
             *) echo "Development package version is not upgradeable: $version" >&2; exit 1 ;;
           esac
+          printf '%s' "$depends" | grep -q 'qt6-qpa-plugins' || {
+            echo "Qt platform plugins are missing from the package dependencies" >&2
+            exit 1
+          }
+          apt-get install -y "$package"
+          set +e
+          QT_QPA_PLATFORM=offscreen timeout --kill-after=2s 8s cub3 > build/package-smoke.log 2>&1
+          smoke_status=$?
+          set -e
+          cat build/package-smoke.log
+          if [ "$smoke_status" -ne 124 ]; then
+            echo "The installed Debian package did not stay running in the offscreen startup test (exit $smoke_status)" >&2
+            exit 1
+          fi
+          if grep -q 'Could not load the Qt platform plugin' build/package-smoke.log; then
+            echo "Qt platform plugin failed to load" >&2
+            exit 1
+          fi
           mkdir -p site/downloads
           cp "$package" site/downloads/cub3-launcher-dev-amd64.deb
       - name: Preparar sitio estático

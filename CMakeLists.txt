@@ -160,7 +160,7 @@ if(UNIX AND NOT APPLE)
     # Shared-library dependencies are derived from the linked executable by
     # dpkg-shlibdeps. These runtime components are loaded dynamically and are
     # therefore not discoverable from ELF linkage alone.
-    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6sql6-sqlite, unzip")
+    set(CPACK_DEBIAN_PACKAGE_DEPENDS "libqt6sql6-sqlite, qt6-qpa-plugins, unzip")
     set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "default-jre-headless")
     # Development packages use a monotonically increasing Debian revision so
     # APT can upgrade them instead of treating each build as a downgrade.
