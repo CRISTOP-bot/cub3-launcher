@@ -22,7 +22,7 @@ QString stylesheet() {
     // Build the stylesheet using simple token replacement.
     // Tokens are written as {{token}} in the template and replaced
     // with the actual colour values. This avoids QString::arg() limitations.
-    static const QString tmpl = R"EOF(
+    static const QString tmpl = QString::fromUtf8(R"EOF(
 /* ===== Global ===== */
 QWidget {
     background-color: {{bgPrimary}};
@@ -510,7 +510,8 @@ QSlider::groove:horizontal {
 }
 QSlider::handle:horizontal {
     background: {{accent}};
-    width: 14px;
+    width: 14px;)EOF")
+        + QString::fromUtf8(R"EOF(
     height: 14px;
     margin: -5px 0;
     border-radius: 7px;
