@@ -754,7 +754,7 @@ QCheckBox::indicator:checked {
     background-color: {{accent}};
     border-color: {{accent}};
 }
-)EOF";
+)EOF");
 
     QString result = tmpl;
 
