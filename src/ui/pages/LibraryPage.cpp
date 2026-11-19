@@ -40,6 +40,9 @@ void LibraryPage::setupUi() {
     // Instance list
     m_list = new QListWidget(this);
     m_list->setObjectName(QStringLiteral("InstanceList"));
+    m_list->setAccessibleName(QStringLiteral("Instalaciones locales de Minecraft"));
+    m_list->setAlternatingRowColors(true);
+    m_list->setSelectionMode(QAbstractItemView::SingleSelection);
     layout->addWidget(m_list, 1);
 
     // Action row
@@ -54,6 +57,8 @@ void LibraryPage::setupUi() {
     actionRow->addWidget(newBtn);
 
     auto* refreshBtn = new QPushButton(QStringLiteral("Actualizar"), this);
+    refreshBtn->setAccessibleName(QStringLiteral("Actualizar la lista de perfiles"));
+    refreshBtn->setToolTip(QStringLiteral("Volver a leer las instalaciones locales"));
     connect(refreshBtn, &QPushButton::clicked, this, &LibraryPage::refreshList);
     actionRow->addWidget(refreshBtn);
 
@@ -79,8 +84,12 @@ void LibraryPage::refreshList() {
         const QString name = query.value(1).toString();
         const QString version = query.value(2).toString();
         const QString loader = query.value(3).toString();
+        const QString loaderLabel = loader.isEmpty()
+            ? QStringLiteral("Sin cargador") : loader;
         auto* item = new QListWidgetItem(
-            QStringLiteral("%1  ·  %2  ·  %3").arg(name, version, loader), m_list);
+            QStringLiteral("%1  ·  Minecraft %2  ·  %3").arg(name, version, loaderLabel), m_list);
+        item->setToolTip(QStringLiteral("%1 · Minecraft %2 · %3")
+                             .arg(name, version, loaderLabel));
         item->setData(Qt::UserRole, query.value(0));
         ++count;
     }

@@ -33,6 +33,9 @@ protected:
 private:
     QString m_iconPath;
     QPixmap m_icon;
+    QPixmap m_iconActive;
+    QPixmap m_iconInactive;
+    void rebuildIconCache();
     static QPixmap loadIcon(const QString& path);
 };
 

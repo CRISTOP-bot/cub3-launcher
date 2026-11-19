@@ -702,6 +702,16 @@ QLabel#LoginError {
     border-radius: 8px;
     padding: 8px 10px;
 }
+QLabel#SettingsSaveStatus[state="dirty"] { color: #F2C879; }
+QLabel#EmptyState { color: {{textSecondary}}; padding: 30px; }
+QDialogButtonBox QPushButton:focus, QPushButton:focus, QToolButton:focus,
+QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QSlider:focus,
+QCheckBox:focus, QTabBar::tab:focus {
+    border: 2px solid {{accent}};
+}
+QPushButton#Primary:disabled { background-color: {{bgRaised}}; color: {{textDisabled}}; }
+QProgressBar#TutorialProgress { min-height: 8px; max-height: 8px; }
+QProgressBar#LoginProgress { min-height: 7px; max-height: 7px; }
 QDialog {
     background-color: {{bgPrimary}};
     color: {{textPrimary}};

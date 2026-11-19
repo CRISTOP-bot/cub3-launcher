@@ -64,6 +64,8 @@ void SettingsPage::setupUi() {
 
     m_javaPath = new QLineEdit(javaGroup);
     m_javaPath->setPlaceholderText(QStringLiteral("Ruta del ejecutable de Java"));
+    m_javaPath->setAccessibleName(QStringLiteral("Ruta del ejecutable de Java"));
+    m_javaPath->setToolTip(QStringLiteral("Debe apuntar a un archivo ejecutable de Java"));
     javaLayout->addRow(QStringLiteral("Ruta de Java:"), m_javaPath);
 
     auto* javaBrowseBtn = new QPushButton(QStringLiteral("Buscar..."), javaGroup);
@@ -90,6 +92,8 @@ void SettingsPage::setupUi() {
     minRow->addWidget(new QLabel(QStringLiteral("Mínima (MB):")));
     m_ramMinSlider = new QSlider(Qt::Horizontal, ramGroup);
     m_ramMinSlider->setRange(512, 32768);
+    m_ramMinSlider->setAccessibleName(QStringLiteral("Memoria mínima para Minecraft, en megabytes"));
+    m_ramMinSlider->setToolTip(QStringLiteral("Usa las flechas para ajustar en pasos de 256 MB"));
     m_ramMinSlider->setSingleStep(256);
     m_ramMinSlider->setValue(512);
     m_ramMinLabel = new QLabel(QStringLiteral("512"), ramGroup);
@@ -103,6 +107,8 @@ void SettingsPage::setupUi() {
     maxRow->addWidget(new QLabel(QStringLiteral("Máxima (MB):")));
     m_ramMaxSlider = new QSlider(Qt::Horizontal, ramGroup);
     m_ramMaxSlider->setRange(512, 32768);
+    m_ramMaxSlider->setAccessibleName(QStringLiteral("Memoria máxima para Minecraft, en megabytes"));
+    m_ramMaxSlider->setToolTip(QStringLiteral("No asignes toda la memoria del equipo al juego"));
     m_ramMaxSlider->setSingleStep(256);
     m_ramMaxSlider->setValue(2048);
     m_ramMaxLabel = new QLabel(QStringLiteral("2048"), ramGroup);
@@ -131,6 +137,7 @@ void SettingsPage::setupUi() {
     dirLayout->setSpacing(theme::sizes::kSpacingSmall);
 
     m_instancesDir = new QLineEdit(dirGroup);
+    m_instancesDir->setAccessibleName(QStringLiteral("Carpeta de perfiles e instalaciones"));
     dirLayout->addRow(QStringLiteral("Perfiles:"), m_instancesDir);
 
     auto* dirBrowseBtn = new QPushButton(QStringLiteral("Buscar..."), dirGroup);
@@ -147,11 +154,14 @@ void SettingsPage::setupUi() {
 
     m_concurrencySpin = new QSpinBox(netGroup);
     m_concurrencySpin->setRange(1, 16);
+    m_concurrencySpin->setAccessibleName(QStringLiteral("Número máximo de descargas simultáneas"));
+    m_concurrencySpin->setToolTip(QStringLiteral("Más descargas simultáneas pueden usar más red y almacenamiento"));
     m_concurrencySpin->setValue(4);
     netLayout->addRow(QStringLiteral("Descargas simultáneas:"), m_concurrencySpin);
 
     m_validateDownloadsCheck = new QCheckBox(QStringLiteral("Verificar los archivos descargados"), netGroup);
     m_validateDownloadsCheck->setChecked(true);
+    m_validateDownloadsCheck->setToolTip(QStringLiteral("Comprueba tamaño y hash cuando el manifiesto proporciona esos datos"));
     netLayout->addRow(QString(), m_validateDownloadsCheck);
 
     netGroup->setObjectName(QStringLiteral("SettingsGroup"));
@@ -164,12 +174,14 @@ void SettingsPage::setupUi() {
     auto* resRow = new QHBoxLayout();
     resRow->addWidget(new QLabel(QStringLiteral("Resolución del juego:")));
     m_resolutionW = new QSpinBox(appGroup);
+    m_resolutionW->setAccessibleName(QStringLiteral("Ancho de la ventana del juego"));
     m_resolutionW->setRange(640, 7680);
     m_resolutionW->setValue(854);
     m_resolutionW->setSuffix(QStringLiteral("px"));
     resRow->addWidget(m_resolutionW);
     resRow->addWidget(new QLabel(QStringLiteral("x")));
     m_resolutionH = new QSpinBox(appGroup);
+    m_resolutionH->setAccessibleName(QStringLiteral("Alto de la ventana del juego"));
     m_resolutionH->setRange(480, 4320);
     m_resolutionH->setValue(480);
     m_resolutionH->setSuffix(QStringLiteral("px"));
@@ -195,8 +207,22 @@ void SettingsPage::setupUi() {
     saveRow->addWidget(saveBtn, 0, Qt::AlignRight);
     layout->addLayout(saveRow);
 
-    // Load current settings
+    // Load current settings before wiring dirty-state feedback.
     loadSettings();
+    const auto markDirty = [this] {
+        m_saveStatus->setProperty("state", "dirty");
+        m_saveStatus->setText(QStringLiteral("Tienes cambios sin guardar."));
+        m_saveStatus->style()->unpolish(m_saveStatus);
+        m_saveStatus->style()->polish(m_saveStatus);
+    };
+    connect(m_javaPath, &QLineEdit::textChanged, this, markDirty);
+    connect(m_instancesDir, &QLineEdit::textChanged, this, markDirty);
+    connect(m_ramMinSlider, &QSlider::valueChanged, this, markDirty);
+    connect(m_ramMaxSlider, &QSlider::valueChanged, this, markDirty);
+    connect(m_concurrencySpin, &QSpinBox::valueChanged, this, markDirty);
+    connect(m_validateDownloadsCheck, &QCheckBox::toggled, this, markDirty);
+    connect(m_resolutionW, &QSpinBox::valueChanged, this, markDirty);
+    connect(m_resolutionH, &QSpinBox::valueChanged, this, markDirty);
 }
 
 void SettingsPage::loadSettings() {

@@ -33,6 +33,7 @@ private:
     QListWidget* m_list{nullptr};
     QLabel* m_speedLabel{nullptr};
     QLabel* m_countLabel{nullptr};
+    QLabel* m_emptyLabel{nullptr};
 };
 
 } // namespace cub3::ui::pages

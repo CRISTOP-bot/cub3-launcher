@@ -62,11 +62,22 @@ MicrosoftAuth::MicrosoftAuth(network::HttpClient* http, QObject* parent)
 {
 }
 
+void MicrosoftAuth::cancelLogin() {
+    ++m_loginRevision;
+    if (m_loginPollTimer) {
+        m_loginPollTimer->stop();
+        m_loginPollTimer->deleteLater();
+        m_loginPollTimer.clear();
+    }
+}
+
 void MicrosoftAuth::login(
     std::function<void(const QString&, const QString&)> onDeviceCode,
     std::function<void(const Account&)> onComplete,
     std::function<void(const QString&)> onError)
 {
+    cancelLogin();
+    const quint64 loginRevision = ++m_loginRevision;
     CUB3_INFO(lcAuth) << "Starting Microsoft device code flow";
     if (!hasConfiguredClientId()) {
         onError(QStringLiteral(
@@ -75,43 +86,53 @@ void MicrosoftAuth::login(
         return;
     }
 
+    const auto guardedError = [this, loginRevision, onError](const QString& error) {
+        if (loginRevision == m_loginRevision && onError)
+            onError(error);
+    };
     requestDeviceCode(
-        [this, onDeviceCode, onComplete, onError]
+        [this, loginRevision, onDeviceCode, onComplete, guardedError]
         (const QString& userCode, const QString& verificationUri,
          const QString& deviceCode, int expiresIn, int interval) {
-            // Show the user the code
+            if (loginRevision != m_loginRevision)
+                return;
             if (onDeviceCode)
                 onDeviceCode(userCode, verificationUri);
 
-            // Open browser automatically
             QDesktopServices::openUrl(QUrl(verificationUri));
-
-            // Start polling
             m_pollInterval = interval;
             pollForToken(deviceCode, interval, expiresIn,
-                [this, onComplete, onError]
+                [this, loginRevision, onComplete, guardedError]
                 (const QString& msToken, const QString& refreshToken,
                  int accessTokenExpiresIn) {
-                    // Got Microsoft tokens — proceed to Xbox Live
+                    if (loginRevision != m_loginRevision)
+                        return;
                     authXboxLive(msToken,
-                        [this, onComplete, onError, msToken, refreshToken,
-                         accessTokenExpiresIn]
+                        [this, loginRevision, onComplete, guardedError, msToken,
+                         refreshToken, accessTokenExpiresIn]
                         (const QString& xblToken, const QString& userHash) {
+                            if (loginRevision != m_loginRevision)
+                                return;
                             authXSTS(xblToken,
-                                [this, onComplete, onError, userHash, msToken,
-                                 refreshToken, accessTokenExpiresIn]
+                                [this, loginRevision, onComplete, guardedError,
+                                 userHash, msToken, refreshToken, accessTokenExpiresIn]
                                 (const QString& xstsToken) {
+                                    if (loginRevision != m_loginRevision)
+                                        return;
                                     authMinecraft(xstsToken, userHash,
-                                        [this, onComplete, onError, msToken,
-                                         refreshToken, accessTokenExpiresIn,
-                                         xstsToken, userHash]
+                                        [this, loginRevision, onComplete, guardedError,
+                                         refreshToken, accessTokenExpiresIn, userHash]
                                         (const QString& mcToken) {
+                                            if (loginRevision != m_loginRevision)
+                                                return;
                                             fetchProfile(mcToken,
-                                                [this, onComplete, onError, mcToken, refreshToken,
-                                                 accessTokenExpiresIn]
+                                                [this, loginRevision, onComplete,
+                                                 refreshToken, accessTokenExpiresIn, mcToken]
                                                 (const QString& username,
                                                  const QString& uuid,
                                                  const QString& skinUrl) {
+                                                    if (loginRevision != m_loginRevision)
+                                                        return;
                                                     Account account;
                                                     account.provider = Provider::Microsoft;
                                                     account.username = username;
@@ -123,19 +144,17 @@ void MicrosoftAuth::login(
                                                         QDateTime::currentDateTime().addSecs(accessTokenExpiresIn);
                                                     CUB3_INFO(lcAuth) << "Microsoft auth complete:"
                                                                       << username;
-                                                    onComplete(account);
-                                                },
-                                                onError);
-                                        },
-                                        onError);
-                                },
-                                onError);
-                        },
-                        onError);
-                },
-                onError);
+                                                    if (onComplete)
+                                                        onComplete(account);
+                                                }, guardedError);
+                                        }, guardedError);
+                                }, guardedError);
+                        }, guardedError);
+                }, guardedError);
         },
-        onError);
+        guardedError);
+    if (loginRevision != m_loginRevision)
+        return;
 }
 
 void MicrosoftAuth::validate(const Account& account,
@@ -284,6 +303,8 @@ void MicrosoftAuth::pollForToken(
     const int pollInterval = std::clamp(interval, 1, 60);
 
     auto* timer = new QTimer(this);
+    m_loginPollTimer = timer;
+    QPointer<QTimer> timerGuard(timer);
     timer->setInterval(pollInterval * 1000);
 
     QUrlQuery params;
@@ -299,22 +320,27 @@ void MicrosoftAuth::pollForToken(
 
     auto requestPending = std::make_shared<bool>(false);
     connect(timer, &QTimer::timeout, this,
-            [this, timer, body, headers, requestPending, attempts,
+            [this, timerGuard, body, headers, requestPending, attempts,
              onComplete, onError]() mutable {
+        if (!timerGuard || !timerGuard->isActive())
+            return;
         if (*requestPending)
             return;
         attempts++;
         if (attempts > m_maxPollAttempts) {
-            timer->stop();
-            timer->deleteLater();
+            timerGuard->stop();
+            timerGuard->deleteLater();
+            m_loginPollTimer.clear();
             onError(QStringLiteral("Authentication timed out"));
             return;
         }
 
         *requestPending = true;
         m_http->post(QUrl(kTokenUrl), body,
-            [this, timer, requestPending, onComplete, onError]
+            [this, timerGuard, requestPending, onComplete, onError]
             (const QByteArray& data, int status) {
+            if (!timerGuard || !timerGuard->isActive())
+                return;
             auto doc = QJsonDocument::fromJson(data);
             auto obj = doc.object();
 
@@ -323,8 +349,9 @@ void MicrosoftAuth::pollForToken(
 
             if (status == 200 && !accessToken.isEmpty()) {
                 // Success
-                timer->stop();
-                timer->deleteLater();
+                timerGuard->stop();
+                timerGuard->deleteLater();
+                m_loginPollTimer.clear();
                 QString refreshToken = obj.value("refresh_token").toString();
                 const int accessTokenExpiresIn =
                     std::clamp(obj.value("expires_in").toInt(3600), 1, 86400);
@@ -337,14 +364,15 @@ void MicrosoftAuth::pollForToken(
             } else if (error == "slow_down") {
                 *requestPending = false;
                 // Increase interval
-                timer->setInterval(timer->interval() + 5000);
+                timerGuard->setInterval(timerGuard->interval() + 5000);
             } else if (status == 0) {
                 *requestPending = false;
                 CUB3_WARN(lcAuth) << "Microsoft token poll failed without an HTTP response";
             } else {
                 // Real error
-                timer->stop();
-                timer->deleteLater();
+                timerGuard->stop();
+                timerGuard->deleteLater();
+                m_loginPollTimer.clear();
                 onError(QStringLiteral("Auth error (HTTP %1): %2 — %3")
                              .arg(status)
                              .arg(error)
@@ -354,11 +382,12 @@ void MicrosoftAuth::pollForToken(
     });
 
     const int lifetimeSeconds = std::clamp(expiresIn, 1, 86400);
-    QTimer::singleShot(lifetimeSeconds * 1000, timer, [timer, onError] {
-        if (!timer->isActive())
+    QTimer::singleShot(lifetimeSeconds * 1000, timer, [this, timerGuard, onError] {
+        if (!timerGuard || !timerGuard->isActive())
             return;
-        timer->stop();
-        timer->deleteLater();
+        timerGuard->stop();
+        timerGuard->deleteLater();
+        m_loginPollTimer.clear();
         onError(QStringLiteral("Authentication timed out"));
     });
     timer->start();

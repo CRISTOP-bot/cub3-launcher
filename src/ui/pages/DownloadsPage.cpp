@@ -57,8 +57,18 @@ void DownloadsPage::setupUi() {
 
     layout->addLayout(infoRow);
 
-    // Download list
+    // Keep a friendly empty state visible until the first task is queued.
+    m_emptyLabel = new QLabel(
+        QStringLiteral("Cuando prepares Minecraft o descargues contenido, aquí verás el progreso y la velocidad."), this);
+    m_emptyLabel->setObjectName(QStringLiteral("EmptyState"));
+    m_emptyLabel->setAlignment(Qt::AlignCenter);
+    m_emptyLabel->setWordWrap(true);
+    m_emptyLabel->setAccessibleName(QStringLiteral("No hay descargas activas"));
+    layout->addWidget(m_emptyLabel, 1);
+
     m_list = new QListWidget(this);
+    m_list->setAccessibleName(QStringLiteral("Lista de progreso de descargas"));
+    m_list->hide();
     layout->addWidget(m_list, 1);
 }
 
@@ -73,6 +83,11 @@ int DownloadsPage::upsertDownload(const QString& id, const QString& name,
                               .arg(progress)
                               .arg(formatSpeed(speed))
                               .arg(status));
+            item->setToolTip(QStringLiteral("%1 · %2 % · %3 · %4")
+                                 .arg(name).arg(progress).arg(formatSpeed(speed), status));
+            m_emptyLabel->hide();
+            m_list->show();
+            m_countLabel->setText(formatDownloadCount(m_list->count()));
             return i;
         }
     }
@@ -85,6 +100,10 @@ int DownloadsPage::upsertDownload(const QString& id, const QString& name,
                       .arg(progress)
                       .arg(formatSpeed(speed))
                       .arg(status));
+    item->setToolTip(QStringLiteral("%1 · %2 % · %3 · %4")
+                         .arg(name).arg(progress).arg(formatSpeed(speed), status));
+    m_emptyLabel->hide();
+    m_list->show();
     m_countLabel->setText(formatDownloadCount(m_list->count()));
     return m_list->count() - 1;
 }
@@ -97,6 +116,9 @@ void DownloadsPage::removeDownload(const QString& id) {
         }
     }
     m_countLabel->setText(formatDownloadCount(m_list->count()));
+    const bool empty = m_list->count() == 0;
+    m_list->setVisible(!empty);
+    m_emptyLabel->setVisible(empty);
 }
 
 void DownloadsPage::setGlobalSpeed(qint64 bytesPerSec) {

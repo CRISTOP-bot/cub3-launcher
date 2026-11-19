@@ -40,6 +40,9 @@ public:
                     std::function<void(const Account&)> onComplete,
                     std::function<void(const QString&)> onError);
 
+    /// Cancel an in-progress login without changing the active account.
+    void cancelLogin();
+
     /// Log out the current account.
     void logout();
 

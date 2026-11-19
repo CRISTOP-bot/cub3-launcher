@@ -137,6 +137,18 @@
           <span class="fix-number">09</span>
           <div><h3>Respuestas de API con límite de memoria</h3><p><b>Antes</b> · las respuestas de servicios se acumulaban completas antes de procesarlas.</p><p><b>Ahora</b> · se leen en partes con un búfer de red de 1 MiB y un máximo de 32 MiB por respuesta; las respuestas mayores se cancelan. Las descargas grandes de archivos siguen su flujo separado.</p></div>
         </article>
+        <article class="fix-row">
+          <span class="fix-number">10</span>
+          <div><h3>Login con progreso y cancelación</h3><p><b>Antes</b> · el formulario desaparecía antes de terminar la autenticación.</p><p><b>Ahora</b> · el diálogo permanece abierto, muestra el estado y el error sin perder el usuario; cancelar Microsoft detiene el sondeo del código de dispositivo. Si falla Ely.by, la contraseña se limpia.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">11</span>
+          <div><h3>Tutorial y pantallas más claros</h3><p><b>Antes</b> · el avance del tutorial y el estado vacío de descargas tenían menos orientación.</p><p><b>Ahora</b> · la guía muestra el paso actual, acepta flechas izquierda/derecha y Inicio permite cambiar de pantalla con Ctrl+1 a Ctrl+5. Ajustes indica cambios sin guardar; controles y formularios tienen nombres accesibles y consejos.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">12</span>
+          <div><h3>Iconos de navegación reutilizados</h3><p><b>Antes</b> · el icono se escalaba y teñía cada vez que se repintaba un botón lateral.</p><p><b>Ahora</b> · se preparan las variantes activa e inactiva al cambiar el recurso y se reutilizan al dibujar. Mejora de trabajo por repintado; no se atribuye una cifra de benchmark.</p></div>
+        </article>
       </div>
       <p class="fixes-note">Build de desarrollo · Release, CTest y comprobación de formato pasaron en CI. La restauración de sesión con cuentas y llavero reales aún requiere una prueba manual. No se publica una cifra de rendimiento: depende del equipo, la red y el almacenamiento.</p>
     </section>

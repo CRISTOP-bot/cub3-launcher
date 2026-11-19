@@ -43,13 +43,16 @@ ModsPage::ModsPage(application::Cub3App* app, QWidget* parent)
     auto* filters = new QHBoxLayout();
     m_query = new QLineEdit(this);
     m_query->setPlaceholderText(QStringLiteral("Buscar mods…"));
+    m_query->setAccessibleName(QStringLiteral("Buscar mods por nombre"));
     m_query->setClearButtonEnabled(true);
     filters->addWidget(m_query, 1);
     m_gameVersion = new QLineEdit(QStringLiteral("1.21.10"), this);
     m_gameVersion->setPlaceholderText(QStringLiteral("Minecraft"));
+    m_gameVersion->setAccessibleName(QStringLiteral("Versión de Minecraft para filtrar mods"));
     m_gameVersion->setMaximumWidth(120);
     filters->addWidget(m_gameVersion);
     m_loader = new QComboBox(this);
+    m_loader->setAccessibleName(QStringLiteral("Cargador de mods"));
     m_loader->addItem(QStringLiteral("Fabric"), QStringLiteral("fabric"));
     m_loader->addItem(QStringLiteral("Forge"), QStringLiteral("forge"));
     m_loader->addItem(QStringLiteral("NeoForge"), QStringLiteral("neoforge"));
@@ -61,6 +64,7 @@ ModsPage::ModsPage(application::Cub3App* app, QWidget* parent)
 
     m_results = new QListWidget(this);
     m_results->setObjectName(QStringLiteral("InstanceList"));
+    m_results->setAccessibleName(QStringLiteral("Resultados de mods compatibles"));
     layout->addWidget(m_results, 1);
 
     auto* actions = new QHBoxLayout();
@@ -68,9 +72,11 @@ ModsPage::ModsPage(application::Cub3App* app, QWidget* parent)
     m_status->setObjectName(QStringLiteral("Secondary"));
     actions->addWidget(m_status, 1);
     auto* installButton = new QPushButton(QStringLiteral("Descargar mod seleccionado"), this);
+    installButton->setToolTip(QStringLiteral("Descarga el archivo del mod; el cargador se configura por separado"));
     connect(installButton, &QPushButton::clicked, this, &ModsPage::installSelected);
     actions->addWidget(installButton);
     auto* curseButton = new QPushButton(QStringLiteral("Buscar en CurseForge ↗"), this);
+    curseButton->setAccessibleName(QStringLiteral("Abrir búsqueda de mods en CurseForge"));
     connect(curseButton, &QPushButton::clicked, this, &ModsPage::openCurseForge);
     actions->addWidget(curseButton);
     layout->addLayout(actions);

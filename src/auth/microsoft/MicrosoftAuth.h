@@ -3,6 +3,8 @@
 
 #include <QObject>
 #include <QString>
+#include <QPointer>
+#include <QTimer>
 #include <QJsonObject>
 #include <functional>
 
@@ -30,6 +32,9 @@ class MicrosoftAuth : public QObject {
 
 public:
     explicit MicrosoftAuth(network::HttpClient* http, QObject* parent = nullptr);
+
+    /// Cancel the active Microsoft device-code polling flow, if any.
+    void cancelLogin();
 
     /// Start the device code login flow.
     /// onDeviceCode: called with the user code and verification URI.
@@ -87,6 +92,8 @@ private:
     network::HttpClient* m_http;
     int m_pollInterval{5}; // seconds
     int m_maxPollAttempts{180}; // 15 minutes max
+    quint64 m_loginRevision{0};
+    QPointer<QTimer> m_loginPollTimer;
 };
 
 } // namespace cub3::auth

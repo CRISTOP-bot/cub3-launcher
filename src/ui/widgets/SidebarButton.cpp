@@ -3,6 +3,7 @@
 #include "styles/Theme.h"
 
 #include <QPainter>
+#include <QPen>
 
 namespace cub3::ui::widgets {
 
@@ -24,11 +25,34 @@ SidebarButton::SidebarButton(const QString& iconPath,
     setCursor(Qt::PointingHandCursor);
     setAttribute(Qt::WA_StyledBackground, true);
     setText(text);
+    rebuildIconCache();
+}
+
+void SidebarButton::rebuildIconCache() {
+    m_iconActive = {};
+    m_iconInactive = {};
+    if (m_icon.isNull())
+        return;
+
+    const int iconSize = theme::sizes::kIconMedium;
+    const QPixmap base = m_icon.scaled(iconSize, iconSize,
+                                       Qt::KeepAspectRatio,
+                                       Qt::SmoothTransformation);
+    const auto tinted = [&base](const QColor& color) {
+        QPixmap icon = base;
+        QPainter painter(&icon);
+        painter.setCompositionMode(QPainter::CompositionMode_SourceIn);
+        painter.fillRect(icon.rect(), color);
+        return icon;
+    };
+    m_iconActive = tinted(theme::colors::textPrimary);
+    m_iconInactive = tinted(theme::colors::textSecondary);
 }
 
 void SidebarButton::setIcon(const QString& path) {
     m_iconPath = path;
     m_icon = loadIcon(path);
+    rebuildIconCache();
     update();
 }
 
@@ -41,7 +65,8 @@ void SidebarButton::paintEvent(QPaintEvent*) {
     QPainter p(this);
     p.setRenderHint(QPainter::Antialiasing, true);
 
-    if (isChecked() || underMouse()) {
+    const bool emphasized = isEnabled() && (isChecked() || underMouse());
+    if (emphasized) {
         p.setPen(Qt::NoPen);
         p.setBrush(isChecked() ? theme::colors::bgRaised : theme::colors::bgTertiary);
         p.drawRoundedRect(rect().adjusted(0, 0, -1, -1), 8, 8);
@@ -50,32 +75,29 @@ void SidebarButton::paintEvent(QPaintEvent*) {
             p.drawRoundedRect(QRect(0, height() / 4, 3, height() / 2), 1, 1);
         }
     }
+    if (hasFocus()) {
+        p.setBrush(Qt::NoBrush);
+        p.setPen(QPen(theme::colors::accent, 2));
+        p.drawRoundedRect(rect().adjusted(2, 2, -3, -3), 7, 7);
+    }
 
     // Draw the icon at the left
     const int iconSize = theme::sizes::kIconMedium;
     const int iconX = theme::sizes::kSpacingMedium;
     const int iconY = (height() - iconSize) / 2;
 
-    if (!m_icon.isNull()) {
-        QPixmap icon = m_icon.scaled(iconSize, iconSize,
-                                     Qt::KeepAspectRatio,
-                                     Qt::SmoothTransformation);
-        QPainter tintPainter(&icon);
-        tintPainter.setCompositionMode(QPainter::CompositionMode_SourceIn);
-        tintPainter.fillRect(icon.rect(), isChecked() || underMouse()
-            ? theme::colors::textPrimary
-            : theme::colors::textSecondary);
-        tintPainter.end();
+    const QPixmap& icon = isChecked() || underMouse()
+        ? m_iconActive : m_iconInactive;
+    if (!icon.isNull())
         p.drawPixmap(iconX, iconY, icon);
-    }
 
     // Draw the text
     const int textX = iconX + iconSize + theme::sizes::kSpacingSmall;
     QRect textRect(textX, 0, width() - textX - theme::sizes::kSpacingSmall, height());
 
-    p.setPen(isChecked() || underMouse()
-             ? theme::colors::textPrimary
-             : theme::colors::textSecondary);
+    p.setPen(!isEnabled() ? theme::colors::textDisabled
+             : emphasized ? theme::colors::textPrimary
+                          : theme::colors::textSecondary);
     p.setFont(font());
     p.drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter, text());
 }

@@ -63,6 +63,7 @@ void AuthManager::loginElyby(
     std::function<void(const Account&)> onComplete,
     std::function<void(const QString&)> onError)
 {
+    m_microsoft->cancelLogin();
     const quint64 loginRevision = ++m_sessionRevision;
     m_elyby->login(username, password,
         [this, onComplete, loginRevision](const Account& account) {
@@ -86,8 +87,14 @@ void AuthManager::loginElyby(
         });
 }
 
+void AuthManager::cancelLogin() {
+    ++m_sessionRevision;
+    m_microsoft->cancelLogin();
+}
+
 void AuthManager::logout() {
     ++m_sessionRevision;
+    m_microsoft->cancelLogin();
     m_currentAccount = Account{};
     emit accountChanged(m_currentAccount);
     removePersistedSession();

@@ -504,6 +504,8 @@ void DashboardPage::setupUi() {
     m_versionSearch = new QLineEdit(hero);
     m_versionSearch->setObjectName(QStringLiteral("SearchField"));
     m_versionSearch->setPlaceholderText(QStringLiteral("Buscar versiones..."));
+    m_versionSearch->setAccessibleName(QStringLiteral("Buscar versiones de Minecraft"));
+    m_versionSearch->setToolTip(QStringLiteral("Escribe para filtrar la lista de versiones"));
     m_versionSearch->setClearButtonEnabled(true);
     m_versionSearch->setMaximumWidth(500);
     topBar->addWidget(m_versionSearch, 1);
@@ -512,6 +514,8 @@ void DashboardPage::setupUi() {
     m_accountButton = new QToolButton(hero);
     m_accountButton->setObjectName(QStringLiteral("AccountBadge"));
     m_accountButton->setText(QStringLiteral("INVITADO  ▾"));
+    m_accountButton->setAccessibleName(QStringLiteral("Cuenta: invitado. Abrir opciones de cuenta"));
+    m_accountButton->setToolTip(QStringLiteral("Conectar una cuenta, cerrar sesión o abrir la guía rápida"));
     m_accountButton->setCursor(Qt::PointingHandCursor);
     connect(m_accountButton, &QToolButton::clicked,
             this, &DashboardPage::accountRequested);
@@ -536,6 +540,8 @@ void DashboardPage::setupUi() {
     auto* launchRow = new QHBoxLayout();
     launchRow->setSpacing(theme::sizes::kSpacingSmall);
     m_playButton = new widgets::PlayButton(QStringLiteral("▶  Jugar"), hero);
+    m_playButton->setAccessibleName(QStringLiteral("Iniciar Minecraft con la versión seleccionada"));
+    m_playButton->setToolTip(QStringLiteral("Elige una versión y una cuenta antes de jugar"));
     connect(m_playButton, &QPushButton::clicked, this, [this] {
         emit playRequested(m_versionSelector->currentData().toString());
     });
@@ -543,6 +549,7 @@ void DashboardPage::setupUi() {
 
     m_versionSelector = new QComboBox(hero);
     m_versionSelector->setObjectName(QStringLiteral("VersionSelector"));
+    m_versionSelector->setAccessibleName(QStringLiteral("Versión de Minecraft"));
     m_versionSelector->setMinimumWidth(210);
     m_versionSelector->setFixedHeight(theme::sizes::kPlayButtonH);
     m_versionSelector->setEnabled(false);
@@ -575,10 +582,14 @@ void DashboardPage::setupUi() {
     m_newsPrevious = new QToolButton(newsHeader);
     m_newsPrevious->setObjectName(QStringLiteral("NewsNavButton"));
     m_newsPrevious->setText(QStringLiteral("‹"));
+    m_newsPrevious->setAccessibleName(QStringLiteral("Novedad anterior"));
+    m_newsPrevious->setToolTip(QStringLiteral("Mostrar la novedad anterior"));
     m_newsPrevious->setCursor(Qt::PointingHandCursor);
     m_newsNext = new QToolButton(newsHeader);
     m_newsNext->setObjectName(QStringLiteral("NewsNavButton"));
     m_newsNext->setText(QStringLiteral("›"));
+    m_newsNext->setAccessibleName(QStringLiteral("Novedad siguiente"));
+    m_newsNext->setToolTip(QStringLiteral("Mostrar la novedad siguiente"));
     m_newsNext->setCursor(Qt::PointingHandCursor);
     newsHeaderLayout->addWidget(m_newsPrevious);
     newsHeaderLayout->addWidget(m_newsNext);
@@ -617,6 +628,7 @@ void DashboardPage::setupUi() {
     m_newsDate->setObjectName(QStringLiteral("FeatureMeta"));
     featureCopy->addWidget(m_newsDate);
     m_newsOpenButton = new QPushButton(QStringLiteral("Leer artículo ↗"), newsCard);
+    m_newsOpenButton->setAccessibleName(QStringLiteral("Abrir artículo oficial de Minecraft"));
     m_newsOpenButton->setObjectName(QStringLiteral("NewsLinkButton"));
     m_newsOpenButton->setCursor(Qt::PointingHandCursor);
     m_newsOpenButton->setEnabled(false);
@@ -675,6 +687,7 @@ void DashboardPage::setupUi() {
     memoryRow->addWidget(m_memoryValue);
     performanceLayout->addLayout(memoryRow);
     m_memoryChart = new MemorySparkline(performanceCard);
+    m_memoryChart->setAccessibleName(QStringLiteral("Gráfica del uso de memoria del launcher"));
     performanceLayout->addWidget(m_memoryChart);
 
     auto* threadsRow = new QHBoxLayout();
@@ -1012,9 +1025,16 @@ void DashboardPage::setApp(application::Cub3App* app) {
 }
 
 void DashboardPage::setPlayerName(const QString& name) {
-    m_accountButton->setText(name.trimmed().isEmpty()
+    const QString player = name.trimmed();
+    m_accountButton->setText(player.isEmpty()
         ? QStringLiteral("INVITADO  ▾")
-        : name.trimmed().toUpper() + QStringLiteral("  ▾"));
+        : player.toUpper() + QStringLiteral("  ▾"));
+    m_accountButton->setAccessibleName(player.isEmpty()
+        ? QStringLiteral("Cuenta: invitado. Abrir opciones de cuenta")
+        : QStringLiteral("Cuenta conectada: %1. Abrir opciones de cuenta").arg(player));
+    m_accountButton->setToolTip(player.isEmpty()
+        ? QStringLiteral("Conectar una cuenta, cerrar sesión o abrir la guía rápida")
+        : QStringLiteral("Cuenta %1. Abrir opciones de cuenta").arg(player));
 }
 
 void DashboardPage::setVersion(const QString& version) {

@@ -36,7 +36,11 @@ el manifiesto solicita Java 25.
 4. Selecciona una versión en Inicio. En **Ajustes** configura Java si hace falta, además de memoria, resolución y carpeta de juego.
 5. Pulsa **Jugar**. Usa **Perfiles** para ver instalaciones locales y **Descargas** para seguir el progreso.
 
-También puedes abrir la **Guía rápida** desde el botón de ayuda de la barra lateral dentro de la app. Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
+También puedes abrir la **Guía rápida** desde el botón de ayuda de la barra lateral dentro de la app. El tutorial muestra el paso actual y permite avanzar o retroceder con las flechas izquierda/derecha. En la ventana principal, `Ctrl+1` a `Ctrl+5` llevan a Inicio, Perfiles, Descargas, Mods y Ajustes.
+
+Durante el inicio de sesión, CUB3 mantiene el formulario abierto, muestra el progreso y presenta los errores ahí mismo. Si cancelas Microsoft, se detiene el sondeo del código de dispositivo. Si falla Ely.by, se borra la contraseña del campo y se conserva el usuario para corregirlo. Los controles principales tienen nombres accesibles; Ajustes avisa cuando hay cambios sin guardar y Descargas explica su estado vacío.
+
+Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
 
 ## Funciones
 
