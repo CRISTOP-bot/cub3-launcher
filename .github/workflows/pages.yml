@@ -38,7 +38,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates git build-essential cmake qt6-base-dev \
-            libqt6sql6-sqlite qtkeychain-qt6-dev unzip file
+            libqt6sql6-sqlite qtkeychain-qt6-dev unzip file gdb
       - name: Descargar código
         uses: actions/checkout@v4
       - name: Compilar paquete .deb de desarrollo
@@ -72,7 +72,8 @@ jobs:
           set -e
           cat build/package-smoke.log
           if [ "$smoke_status" -ne 124 ]; then
-            echo "The installed Debian package did not stay running in the offscreen startup test (exit $smoke_status)" >&2
+            echo "The installed Debian package did not stay running in the offscreen startup test (exit $smoke_status); collecting a backtrace" >&2
+            QT_QPA_PLATFORM=offscreen gdb --batch --ex "set pagination off" --ex run --ex bt --args cub3 || true
             exit 1
           fi
           if grep -q 'Could not load the Qt platform plugin' build/package-smoke.log; then
