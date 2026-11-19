@@ -132,6 +132,7 @@ jobs:
 
           Copy-Item LICENSE $stage
           Copy-Item README.md $stage
+          Copy-Item -Recurse assets (Join-Path $stage 'assets')
           $licenses = Join-Path $stage 'licenses'
           New-Item -ItemType Directory -Force -Path $licenses | Out-Null
           Get-ChildItem -Path vcpkg_installed/x64-windows/share -Filter copyright -Recurse | ForEach-Object {

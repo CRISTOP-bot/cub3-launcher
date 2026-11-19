@@ -165,7 +165,7 @@
         </article>
         <article class="fix-row">
           <span class="fix-number">15</span>
-          <div><h3>Port Windows x64 sin quitar Linux</h3><p><b>Antes</b> · CUB3 no se compilaba ni empaquetaba en Windows y las bibliotecas nativas requerían `unzip`.</p><p><b>Ahora</b> · CI configura Windows con Qt 6/QtKeychain, compila y ejecuta CTest; prepara un ZIP portable con DLL y plugins de Qt. Windows usa `tar.exe` del sistema para las bibliotecas ZIP; Linux conserva su build y `.deb` con `unzip`.</p></div>
+          <div><h3>Port Windows x64 sin quitar Linux</h3><p><b>Antes</b> · CUB3 no se compilaba ni empaquetaba en Windows y las bibliotecas nativas requerían `unzip`.</p><p><b>Ahora</b> · CI configura Windows con Qt 6/QtKeychain, compila y ejecuta CTest; prepara un ZIP portable con el `.exe`, DLL, plugins de Qt y la carpeta `assets`. Windows usa `tar.exe` del sistema para las bibliotecas ZIP; Linux conserva su build y `.deb` con `unzip`.</p></div>
         </article>
       </div>
       <p class="fixes-note">Build de desarrollo · Release, CTest y comprobación de formato pasaron en CI. La restauración de sesión con cuentas y llavero reales aún requiere una prueba manual. No se publica una cifra de rendimiento: depende del equipo, la red y el almacenamiento.</p>
@@ -201,7 +201,7 @@
           <span class="eyebrow muted">ELIGE TU PLATAFORMA</span>
           <h2>Descarga CUB3.</h2>
         </div>
-        <p>Descarga el build de desarrollo para Linux x86_64 o el ZIP portable de Windows x64 generado por CI. El paquete Linux se construye en Debian 12 para evitar dependencias de Ubuntu no disponibles en Debian estable. macOS sigue en preparación.</p>
+        <p>Descarga el build de desarrollo para Linux x86_64 o el ZIP portable de Windows x64 generado por CI, con el ejecutable, las DLL y plugins de Qt y los assets del proyecto. El paquete Linux se construye en Debian 12 para evitar dependencias de Ubuntu no disponibles en Debian estable. macOS sigue en preparación.</p>
       </div>
       <div class="download-grid">
         <a class="download-card download-ready" href="downloads/cub3-launcher-dev-amd64.deb" aria-label="Descargar el build de desarrollo más reciente de CUB3 Launcher para Linux x86_64 en formato .deb">
@@ -214,7 +214,7 @@
           <span class="platform-icon windows-icon"><img src="assets/platforms/windows.png" alt=""></span>
           <span class="platform-copy"><strong>Windows</strong><small>Windows 10 1809 o posterior · x64</small></span>
           <span class="download-action">Ver build portable <b aria-hidden="true">↗</b></span>
-          <span class="platform-note">ZIP portable x64 + SHA-256 · artefacto de Actions, disponible 30 días</span>
+          <span class="platform-note">ZIP x64: .exe, DLL, plugins Qt y assets · SHA-256 · 30 días</span>
         </a>
         <article class="download-card download-soon" aria-label="macOS, próximamente">
           <span class="platform-icon mac-icon"><img src="assets/platforms/macos.png" alt=""></span>
