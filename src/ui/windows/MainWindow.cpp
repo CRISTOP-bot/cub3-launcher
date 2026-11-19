@@ -555,7 +555,6 @@ void MainWindow::setupUi() {
     m_btnMods->setToolTip(QStringLiteral("Mods · Ctrl+4"));
     m_btnSettings->setAccessibleName(QStringLiteral("Ir a Ajustes"));
     m_btnSettings->setToolTip(QStringLiteral("Ajustes · Ctrl+5"));
-    m_stack->setAccessibleName(QStringLiteral("Contenido de CUB3 Launcher"));
 
     // Group nav buttons so only one is checked at a time
     auto* navGroup = new QButtonGroup(this);
@@ -605,6 +604,7 @@ void MainWindow::setupUi() {
     // --- Content area (stacked pages) ---------------------------------
     m_stack = new QStackedWidget(contentWidget);
     m_stack->setObjectName(QStringLiteral("ContentArea"));
+    m_stack->setAccessibleName(QStringLiteral("Contenido de CUB3 Launcher"));
 
     // Create dashboard immediately (it's the landing page)
     m_dashboard = new pages::DashboardPage(m_app, m_stack);
