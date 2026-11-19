@@ -478,8 +478,6 @@ void ModsPage::installSelected() {
                     }
                     return;
                 }
-                if (!backupPath.isEmpty())
-                    QFile::remove(backupPath);
                 downloadGuard->m_status->setText(
                     QStringLiteral("%1 se guardó en %2/mods. Verifica compatibilidad y licencia antes de jugar.")
                         .arg(filename, gameVersion));
