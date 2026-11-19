@@ -1,5 +1,8 @@
-# CMake build output
+# CMake / vcpkg build output
 /build/
+/vcpkg_installed/
+/stage-windows/
+/cub3-launcher-windows-x64.zip
 /cmake-build-*/
 /CMakeFiles/
 CMakeCache.txt

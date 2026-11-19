@@ -1,0 +1,21 @@
+{
+  "name": "cub3-launcher",
+  "version-string": "0.1.0",
+  "builtin-baseline": "e1ff419d28c7f0a94abaf0a848fe0aeeb69b2de3",
+  "dependencies": [
+    {
+      "name": "qtbase",
+      "default-features": false,
+      "features": [
+        "concurrent",
+        "network",
+        "sql-sqlite",
+        "testlib",
+        "widgets",
+        "windeployqt"
+      ]
+    },
+    "qtkeychain-qt6",
+    "qtsvg"
+  ]
+}

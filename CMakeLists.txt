@@ -46,7 +46,7 @@ find_package(Qt6Keychain REQUIRED CONFIG)
 # Compile options tuned for performance without breaking compatibility
 # ---------------------------------------------------------------------------
 if(MSVC)
-    add_compile_options(/W4 /permissive-)
+    add_compile_options(/W4 /permissive- /utf-8)
 else()
     add_compile_options(
         -Wall

@@ -33,3 +33,128 @@ jobs:
       - name: Check pull request whitespace
         if: github.event_name == 'pull_request'
         run: git diff --check "origin/${{ github.base_ref }}...HEAD"
+
+  windows-release:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout CUB3
+        uses: actions/checkout@v4
+
+      - name: Checkout pinned vcpkg registry
+        uses: actions/checkout@v4
+        with:
+          repository: microsoft/vcpkg
+          ref: e1ff419d28c7f0a94abaf0a848fe0aeeb69b2de3
+          path: vcpkg
+
+      - name: Bootstrap vcpkg
+        shell: pwsh
+        run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+
+      - name: Cache Windows vcpkg packages
+        uses: actions/cache@v4
+        with:
+          path: vcpkg_installed
+          key: cub3-vcpkg-windows-x64-${{ hashFiles('vcpkg.json') }}
+
+      - name: Configure and build with vcpkg
+        shell: pwsh
+        run: |
+          $vcpkgRoot = Join-Path $PWD 'vcpkg'
+          $installedDir = Join-Path $PWD 'vcpkg_installed'
+          $toolchain = Join-Path $vcpkgRoot 'scripts/buildsystems/vcpkg.cmake'
+          cmake -S . -B build `
+            -DCMAKE_TOOLCHAIN_FILE="$toolchain" `
+            -DVCPKG_ROOT="$vcpkgRoot" `
+            -DVCPKG_TARGET_TRIPLET=x64-windows `
+            -DVCPKG_INSTALLED_DIR="$installedDir" `
+            -DCMAKE_BUILD_TYPE=Release `
+            -DBUILD_TESTING=ON
+          if ($LASTEXITCODE -ne 0) { throw 'Windows CMake configure failed' }
+          cmake --build build --config Release --parallel 2
+          if ($LASTEXITCODE -ne 0) { throw 'Windows Release build failed' }
+
+      - name: Run Windows tests
+        shell: pwsh
+        run: |
+          $env:PATH = (Join-Path $PWD 'vcpkg_installed/x64-windows/bin') + ';' + $env:PATH
+          $env:QT_PLUGIN_PATH = Join-Path $PWD 'vcpkg_installed/x64-windows/plugins'
+          $env:QT_QPA_PLATFORM = 'offscreen'
+          ctest --test-dir build -C Release --output-on-failure
+          if ($LASTEXITCODE -ne 0) { throw 'Windows CTest failed' }
+
+      - name: Prepare portable Windows bundle
+        shell: pwsh
+        run: |
+          $env:PATH = (Join-Path $PWD 'vcpkg_installed/x64-windows/bin') + ';' + $env:PATH
+          $exe = Get-ChildItem -Path build/bin -Filter cub3.exe -Recurse | Select-Object -First 1
+          if (-not $exe) { throw 'The Windows build did not produce cub3.exe' }
+          $stage = Join-Path $PWD 'stage-windows'
+          New-Item -ItemType Directory -Force -Path $stage | Out-Null
+          $stagedExe = Join-Path $stage 'cub3.exe'
+          Copy-Item $exe.FullName $stagedExe
+
+          $deploy = Get-ChildItem -Path vcpkg_installed -Filter windeployqt.exe -Recurse | Select-Object -First 1
+          if (-not $deploy) { throw 'vcpkg did not provide windeployqt.exe' }
+          $deployExe = $deploy.FullName
+          & $deployExe --release --compiler-runtime --dir $stage $stagedExe
+          if ($LASTEXITCODE -ne 0) { throw 'windeployqt failed to assemble Qt runtime files' }
+
+          $keychain = Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter '*keychain*.dll' | Select-Object -First 1
+          if (-not $keychain) { throw 'The QtKeychain runtime DLL was not found in the vcpkg installation' }
+          Copy-Item $keychain.FullName $stage
+
+          $svgRuntime = Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter '*Svg*.dll' | Select-Object -First 1
+          if (-not $svgRuntime) { throw 'The Qt SVG runtime DLL was not found in the vcpkg installation' }
+          Copy-Item $svgRuntime.FullName $stage
+          $svgPlugin = Get-ChildItem -Path vcpkg_installed/x64-windows -Filter '*svg*.dll' -Recurse | Where-Object { $_.DirectoryName -match 'imageformats' } | Select-Object -First 1
+          if (-not $svgPlugin) { throw 'The Qt SVG image plugin was not found in the vcpkg installation' }
+          $imagePlugins = Join-Path $stage 'imageformats'
+          New-Item -ItemType Directory -Force -Path $imagePlugins | Out-Null
+          Copy-Item $svgPlugin.FullName $imagePlugins
+
+          $sqlite = Get-ChildItem -Path vcpkg_installed/x64-windows -Filter qsqlite.dll -Recurse | Select-Object -First 1
+          if (-not $sqlite) { throw 'The Qt SQLite driver was not found in the vcpkg installation' }
+          $sqlPlugins = Join-Path $stage 'sqldrivers'
+          New-Item -ItemType Directory -Force -Path $sqlPlugins | Out-Null
+          Copy-Item $sqlite.FullName $sqlPlugins
+
+          foreach ($pattern in @('libssl*.dll', 'libcrypto*.dll')) {
+            Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter $pattern -ErrorAction SilentlyContinue |
+              Copy-Item -Destination $stage
+          }
+          $tlsPlugin = Get-ChildItem -Path vcpkg_installed/x64-windows -Filter '*openssl*.dll' -Recurse -ErrorAction SilentlyContinue | Where-Object { $_.DirectoryName -match 'plugins.tls' } | Select-Object -First 1
+          if ($tlsPlugin) {
+            $tlsPlugins = Join-Path $stage 'tls'
+            New-Item -ItemType Directory -Force -Path $tlsPlugins | Out-Null
+            Copy-Item $tlsPlugin.FullName $tlsPlugins
+          }
+
+          Copy-Item LICENSE $stage
+          Copy-Item README.md $stage
+          $licenses = Join-Path $stage 'licenses'
+          New-Item -ItemType Directory -Force -Path $licenses | Out-Null
+          Get-ChildItem -Path vcpkg_installed/x64-windows/share -Filter copyright -Recurse | ForEach-Object {
+            $package = Split-Path (Split-Path $_.FullName -Parent) -Leaf
+            Copy-Item $_.FullName (Join-Path $licenses ($package + '.txt')) -Force
+          }
+
+          $bundle = Join-Path $PWD 'cub3-launcher-windows-x64.zip'
+          Compress-Archive -Path (Join-Path $stage '*') -DestinationPath $bundle -Force
+          $hash = (Get-FileHash -Path $bundle -Algorithm SHA256).Hash.ToLowerInvariant()
+          Set-Content -Path (Join-Path $PWD 'cub3-launcher-windows-x64.zip.sha256') -Value "$hash  cub3-launcher-windows-x64.zip" -Encoding ascii
+
+      - name: Upload portable Windows build
+        uses: actions/upload-artifact@v4
+        with:
+          name: cub3-launcher-windows-x64
+          path: |
+            cub3-launcher-windows-x64.zip
+            cub3-launcher-windows-x64.zip.sha256
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Check Windows patch whitespace
+        if: github.event_name == 'push'
+        shell: bash
+        run: git diff --check HEAD^ HEAD

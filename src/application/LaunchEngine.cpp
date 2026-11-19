@@ -390,17 +390,33 @@ void LaunchEngine::startGame() {
         return;
     }
 
-    const QString unzip = QStandardPaths::findExecutable(QStringLiteral("unzip"));
+#ifdef CUB3_PLATFORM_WINDOWS
+    // Windows 10 1803+ and Windows 11 include bsdtar, which can unpack ZIPs.
+    // Keep the Linux path using unzip so the existing Linux packaging is unchanged.
+    const QString archiveTool = QStandardPaths::findExecutable(QStringLiteral("tar.exe"));
+#else
+    const QString archiveTool = QStandardPaths::findExecutable(QStringLiteral("unzip"));
+#endif
     for (const auto& file : m_files) {
         if (!file.native)
             continue;
-        if (unzip.isEmpty()) {
+        if (archiveTool.isEmpty()) {
+#ifdef CUB3_PLATFORM_WINDOWS
+            fail(QStringLiteral("No se encontró tar.exe. Se requiere Windows 10 versión 1809 o posterior para preparar las bibliotecas nativas."));
+#else
             fail(QStringLiteral("Se necesita unzip para preparar las bibliotecas nativas."));
+#endif
             return;
         }
         const QString archive = QDir(core::Paths::dataDir()).filePath(file.path);
-        if (QProcess::execute(unzip,
-                {QStringLiteral("-oq"), archive, QStringLiteral("-d"), nativesDirectory}) != 0) {
+#ifdef CUB3_PLATFORM_WINDOWS
+        const QStringList extractArguments{
+            QStringLiteral("-xf"), archive, QStringLiteral("-C"), nativesDirectory};
+#else
+        const QStringList extractArguments{
+            QStringLiteral("-oq"), archive, QStringLiteral("-d"), nativesDirectory};
+#endif
+        if (QProcess::execute(archiveTool, extractArguments) != 0) {
             fail(QStringLiteral("No se pudieron extraer las bibliotecas nativas."));
             return;
         }

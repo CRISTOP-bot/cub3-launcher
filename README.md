@@ -2,12 +2,9 @@
 
 ![Estado de GitHub Pages](https://github.com/CRISTOP-bot/cub3-launcher/actions/workflows/pages.yml/badge.svg?branch=dev)
 
-Launcher de Minecraft para Linux, escrito en C++20 y Qt 6. CUB3 permite iniciar
-sesión con Microsoft o Ely.by, instalar versiones vanilla, consultar novedades
-oficiales y organizar instalaciones locales.
+Launcher de Minecraft escrito en C++20 y Qt 6 para Linux y Windows x64. CUB3 permite iniciar sesión con Microsoft o Ely.by, instalar versiones vanilla, consultar novedades oficiales y organizar instalaciones locales.
 
-> **Pre lanzamiento:** la versión pública actual es `0.1.0-pre.1` para Debian y
-> Ubuntu de 64 bits. Windows y macOS todavía no tienen instaladores.
+> **Pre lanzamiento:** la versión pública `0.1.0-pre.1` incluye el paquete Debian/Ubuntu x86_64. El build portable de Windows x64 se genera en CI como artefacto de desarrollo (retención de 30 días); no es todavía una publicación estable ni un instalador. macOS sigue sin port.
 >
 > **Proyecto experimental:** CUB3 tiene apenas unos días de vida. No es
 > estable; puede contener errores, cambiar sin aviso o perder datos. Haz copias
@@ -17,6 +14,9 @@ oficiales y organizar instalaciones locales.
 
 - [Paquete Debian/Ubuntu x86_64](https://github.com/CRISTOP-bot/cub3-launcher/releases/download/v0.1.0-pre.1/cub3-launcher-0.1.0-x86_64.deb)
 - [Notas y archivos de la versión](https://github.com/CRISTOP-bot/cub3-launcher/releases/tag/v0.1.0-pre.1)
+- [Build portable de Windows x64 en GitHub Actions](https://github.com/CRISTOP-bot/cub3-launcher/actions/workflows/build.yml) (artifact de desarrollo, retención 30 días)
+
+Para obtener el ZIP de Windows, abre el workflow, elige una ejecución exitosa y descarga el artefacto **cub3-launcher-windows-x64**. Comprueba el `.sha256` incluido antes de usarlo. No hay instalador ni Release estable de Windows todavía.
 - [Sitio del proyecto](https://cristop-bot.github.io/cub3-launcher/)
 
 Instala el paquete desde una terminal:
@@ -49,7 +49,10 @@ Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
 - Instalación y ejecución de versiones vanilla.
 - Feed de noticias oficial de Minecraft.
 - Preferencias de Java, memoria, resolución, rutas y descargas.
-- Paquete `.deb` y acceso desde el menú de aplicaciones.
+- Paquete `.deb` para Linux y build portable ZIP x64 para Windows (artefacto de desarrollo de CI).
+- Búsqueda de mods en Modrinth por versión/cargador, descarga del `.jar` seleccionado a la carpeta `mods` de la instalación y acceso al proyecto. CurseForge abre su búsqueda web; CUB3 todavía no instala cargadores.
+
+Antes de descargar un mod, revisa la versión compatible, licencia y requisitos en la página del proyecto. Los `.jar` son código de terceros y no los verifica ni respalda CUB3.
 
 La creación de perfiles con Fabric, Forge u otros cargadores todavía no está
 implementada. Consulta [la auditoría de errores y limitaciones](DOCS/BUG_AUDIT.md)
@@ -63,8 +66,21 @@ para conocer el estado revisado.
 - Qt 6 con Widgets, Network, Sql y Concurrent.
 - QtKeychain para guardar la sesión de forma segura en el sistema.
 - SQLite y el plugin Qt SQLite.
-- `unzip` para extraer bibliotecas nativas en Linux.
+- `unzip` para extraer bibliotecas nativas en Linux; en Windows se usa `tar.exe` incluido en Windows 10 1809 o posterior y Windows 11.
 - Java compatible con la versión de Minecraft que quieras ejecutar (recomendado; no es una versión fija).
+
+En Windows se requiere Visual Studio 2022 con C++ y CMake, además de Git. El manifiesto `vcpkg.json` fija el baseline e instala Qt 6, Qt SVG, el driver SQLite y QtKeychain. Desde PowerShell, configura y ejecuta las pruebas así:
+
+```powershell
+git clone https://github.com/microsoft/vcpkg.git vcpkg
+git -C vcpkg checkout e1ff419d28c7f0a94abaf0a848fe0aeeb69b2de3
+.\vcpkg\bootstrap-vcpkg.bat -disableMetrics
+cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE="$PWD/vcpkg/scripts/buildsystems/vcpkg.cmake" -DVCPKG_TARGET_TRIPLET=x64-windows -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
+cmake --build build --config Release --parallel
+ctest --test-dir build -C Release --output-on-failure
+```
+
+La CI compila y ejecuta CTest en Windows, prepara un ZIP portable con las DLL/plugins de Qt y el runtime de MSVC, e incluye el checksum SHA-256. El ZIP se sube como artefacto de desarrollo temporal de Actions (30 días); aún no se genera un instalador ni una Release estable de Windows.
 
 El paquete `.deb` declara las bibliotecas compartidas detectadas durante el
 empaquetado, además de `libqt6sql6-sqlite` y `unzip`; APT instala los paquetes

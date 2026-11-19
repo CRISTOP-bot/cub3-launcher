@@ -21,6 +21,7 @@
 #include <QFileInfo>
 #include <QDir>
 #include <QStyle>
+#include <QStandardPaths>
 
 namespace cub3::ui::pages {
 
@@ -246,13 +247,17 @@ void SettingsPage::loadSettings() {
 }
 
 void SettingsPage::onJavaBrowse() {
+#ifdef CUB3_PLATFORM_WINDOWS
+    QString initialDirectory = QStandardPaths::findExecutable(QStringLiteral("java.exe"));
+    if (!initialDirectory.isEmpty())
+        initialDirectory = QFileInfo(initialDirectory).absolutePath();
+    auto path = QFileDialog::getOpenFileName(this,
+        QStringLiteral("Seleccionar ejecutable de Java"), initialDirectory,
+        QStringLiteral("Java (java.exe) (*.exe)"));
+#else
     auto path = QFileDialog::getOpenFileName(this,
         QStringLiteral("Seleccionar ejecutable de Java"),
-        QStringLiteral("/usr/bin"),
-#ifdef CUB3_PLATFORM_WINDOWS
-        QStringLiteral("Java (java.exe)"));
-#else
-        QStringLiteral("Java (java java-*)"));
+        QStringLiteral("/usr/bin"), QStringLiteral("Java (java java-*)"));
 #endif
     if (!path.isEmpty())
         m_javaPath->setText(path);

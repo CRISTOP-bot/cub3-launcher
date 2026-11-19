@@ -47,7 +47,7 @@
           <a class="button primary" href="https://github.com/CRISTOP-bot/cub3-launcher">Explorar el proyecto <span aria-hidden="true">↗</span></a>
           <a class="button secondary" href="#caracteristicas">Conocer CUB3 <span aria-hidden="true">↓</span></a>
         </div>
-        <div class="hero-note"><span class="status-dot"></span> Repositorio público · C++ y Qt · Linux</div>
+        <div class="hero-note"><span class="status-dot"></span> Repositorio público · C++ y Qt · Linux y Windows x64</div>
       </div>
       <div class="hero-caption"><span>01</span><span>CHERRY GROVE · MINECRAFT</span></div>
     </section>
@@ -78,6 +78,12 @@
         <h3>Novedades reales</h3>
         <p>Consulta artículos e imágenes recientes del feed oficial de noticias de Minecraft.</p>
         <span class="card-index">03 / MINECRAFT.NET</span>
+      </article>
+      <article class="feature-card">
+        <div class="feature-icon violet">⬡</div>
+        <h3>Explora mods</h3>
+        <p>Busca en Modrinth por versión y cargador, revisa el proyecto y descarga su archivo compatible. El cargador debe estar instalado aparte.</p>
+        <span class="card-index">04 / MODRINTH</span>
       </article>
     </section>
 
@@ -149,6 +155,18 @@
           <span class="fix-number">12</span>
           <div><h3>Iconos de navegación reutilizados</h3><p><b>Antes</b> · el icono se escalaba y teñía cada vez que se repintaba un botón lateral.</p><p><b>Ahora</b> · se preparan las variantes activa e inactiva al cambiar el recurso y se reutilizan al dibujar. Mejora de trabajo por repintado; no se atribuye una cifra de benchmark.</p></div>
         </article>
+        <article class="fix-row">
+          <span class="fix-number">13</span>
+          <div><h3>Mods con resultados y filtros claros</h3><p><b>Antes</b> · la búsqueda no explicaba bien si cargaba, había fallado o no había coincidencias.</p><p><b>Ahora</b> · indica versión y cargador, valida la versión, evita respuestas atrasadas y muestra estados de carga, error y lista vacía. Cada resultado puede abrir su página en Modrinth.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">14</span>
+          <div><h3>Descargas de mods con confirmación</h3><p><b>Antes</b> · descargar podía sobrescribir archivos y no dejaba claro que el cargador no se instala.</p><p><b>Ahora</b> · confirma el archivo y destino, pregunta antes de reemplazar, verifica tamaño/hash si Modrinth los ofrece y muestra el progreso. Guarda el `.jar` en la carpeta mods de la ruta de instancias configurada.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">15</span>
+          <div><h3>Port Windows x64 sin quitar Linux</h3><p><b>Antes</b> · CUB3 no se compilaba ni empaquetaba en Windows y las bibliotecas nativas requerían `unzip`.</p><p><b>Ahora</b> · CI configura Windows con Qt 6/QtKeychain, compila y ejecuta CTest; prepara un ZIP portable con DLL y plugins de Qt. Windows usa `tar.exe` del sistema para las bibliotecas ZIP; Linux conserva su build y `.deb` con `unzip`.</p></div>
+        </article>
       </div>
       <p class="fixes-note">Build de desarrollo · Release, CTest y comprobación de formato pasaron en CI. La restauración de sesión con cuentas y llavero reales aún requiere una prueba manual. No se publica una cifra de rendimiento: depende del equipo, la red y el almacenamiento.</p>
     </section>
@@ -183,7 +201,7 @@
           <span class="eyebrow muted">ELIGE TU PLATAFORMA</span>
           <h2>Descarga CUB3.</h2>
         </div>
-        <p>Descarga el build de desarrollo más reciente para Linux x86_64. El paquete se construye en Debian 12 para evitar dependencias de Ubuntu no disponibles en Debian estable. Los instaladores para Windows y macOS siguen en preparación.</p>
+        <p>Descarga el build de desarrollo para Linux x86_64 o el ZIP portable de Windows x64 generado por CI. El paquete Linux se construye en Debian 12 para evitar dependencias de Ubuntu no disponibles en Debian estable. macOS sigue en preparación.</p>
       </div>
       <div class="download-grid">
         <a class="download-card download-ready" href="downloads/cub3-launcher-dev-amd64.deb" aria-label="Descargar el build de desarrollo más reciente de CUB3 Launcher para Linux x86_64 en formato .deb">
@@ -192,12 +210,12 @@
           <span class="download-action">Descargar .deb <b aria-hidden="true">↓</b></span>
           <span class="platform-note">Build de desarrollo · generado en Debian 12 x86_64</span>
         </a>
-        <article class="download-card download-soon" aria-label="Windows, próximamente">
+        <a class="download-card download-ready" href="https://github.com/CRISTOP-bot/cub3-launcher/actions/workflows/build.yml" aria-label="Abrir los builds de CUB3 Launcher para Windows x64 en GitHub Actions">
           <span class="platform-icon windows-icon"><img src="assets/platforms/windows.png" alt=""></span>
-          <span class="platform-copy"><strong>Windows</strong><small>Windows 10 y 11</small></span>
-          <span class="soon-badge">PRÓXIMAMENTE</span>
-          <span class="platform-note">Estamos preparando el instalador para Windows.</span>
-        </article>
+          <span class="platform-copy"><strong>Windows</strong><small>Windows 10 1809 o posterior · x64</small></span>
+          <span class="download-action">Ver build portable <b aria-hidden="true">↗</b></span>
+          <span class="platform-note">ZIP portable x64 + SHA-256 · artefacto de Actions, disponible 30 días</span>
+        </a>
         <article class="download-card download-soon" aria-label="macOS, próximamente">
           <span class="platform-icon mac-icon"><img src="assets/platforms/macos.png" alt=""></span>
           <span class="platform-copy"><strong>macOS</strong><small>Apple silicon e Intel</small></span>
@@ -205,7 +223,7 @@
           <span class="platform-note">Estamos preparando el instalador para macOS.</span>
         </article>
       </div>
-      <p class="download-help">Este paquete se genera desde la rama dev y puede incluir cambios experimentales. <a href="https://github.com/CRISTOP-bot/cub3-launcher/tree/dev">Revisar el código fuente ↗</a></p>
+      <p class="download-help">El .deb y el ZIP de Windows se generan desde la rama dev y pueden incluir cambios experimentales. En Actions abre el último workflow exitoso de Windows y descarga el artefacto cub3-launcher-windows-x64. <a href="https://github.com/CRISTOP-bot/cub3-launcher/tree/dev">Revisar el código fuente ↗</a></p>
       <div class="dependency-card" id="dependencias">
         <div><span class="eyebrow muted">DEPENDENCIAS</span><h3>Instalación automática con APT</h3>
           <p>El paquete declara sus bibliotecas y los requisitos de ejecución; al instalar el .deb con APT, el sistema instala las dependencias declaradas que falten.</p>
@@ -213,7 +231,8 @@
         <ul>
           <li><b>Incluidas en Depends:</b> bibliotecas Qt 6 y del sistema detectadas al empaquetar, plugin Qt SQLite y unzip.</li>
           <li><b>Recomendada:</b> Java Runtime headless; APT la instala como recomendación por defecto.</li>
-          <li><b>Compatibilidad:</b> paquete construido en Debian 12; no lo instales en Ubuntu u otra distribución sin verificar primero sus dependencias.</li>
+          <li><b>Windows:</b> ZIP portable de desarrollo x64; requiere Windows 10 1809 o posterior o Windows 11. Descarga el artefacto desde Actions; se conserva 30 días.</li>
+          <li><b>Compatibilidad Linux:</b> paquete construido en Debian 12; no lo instales en Ubuntu u otra distribución sin verificar primero sus dependencias.</li>
           <li><b>Java:</b> la versión debe coincidir con la versión de Minecraft que ejecutes. Minecraft 26.3 requiere Java 25.</li>
         </ul>
         <p class="dependency-command">Instala el paquete con <strong>sudo apt install ./cub3-launcher-dev-amd64.deb</strong> para que APT resuelva automáticamente las dependencias.</p>
