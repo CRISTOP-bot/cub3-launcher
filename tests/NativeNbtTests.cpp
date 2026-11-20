@@ -95,4 +95,4 @@ private slots:
 };
 
 QTEST_GUILESS_MAIN(NativeNbtTests)
-#include "NbtTests.moc"
+#include "NativeNbtTests.moc"
