@@ -123,21 +123,11 @@ cpack --config build/CPackConfig.cmake -B build
 
 El paquete se genera en `build/`.
 
-## Flujo de desarrollo
+## Contribuir
 
-**Todo cambio regular debe terminar en `dev`: código, correcciones, sitio web y
-documentación.** `dev` es la rama activa y predeterminada. `main` está protegida:
-no hagas commits directos allí; se reserva para promociones estables mediante
-PR.
+**Todas las contribuciones se envían mediante pull request (PR) a `dev`. No se aceptan pushes ni commits directos a las ramas del proyecto.** Haz fork, trabaja en una rama propia basada en `upstream/dev`, súbela a tu fork y abre la PR con destino `dev`. Esto aplica al código, pruebas, documentación, recursos y sitio. `main` se reserva para promociones estables mediante PR.
 
-```sh
-git clone https://github.com/CRISTOP-bot/cub3-launcher.git
-cd cub3-launcher
-git switch dev
-```
-
-Puedes trabajar directamente en `dev` o abrir un PR con destino `dev`. Lee
-[`CONTRIBUTING.md`](CONTRIBUTING.md) antes de enviar cambios.
+Lee [`CONTRIBUTING.md`](CONTRIBUTING.md) para conocer el flujo completo, las comprobaciones y cómo reportar errores.
 
 ## Datos y privacidad
 

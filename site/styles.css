@@ -75,3 +75,6 @@ html{scroll-padding-top:100px}.site-header{position:sticky;top:0;z-index:50;back
 :root[data-theme="dark"] .change-details{border-color:var(--line)}
 :root[data-theme="dark"] .change-details summary{color:var(--ink)}
 @media(max-width:700px){html{scroll-padding-top:124px}}
+
+/* Contribution policy callout */
+.contribute-note{max-width:1240px;margin:0 auto;padding:27px 55px;display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.contribute-note>div{display:grid;gap:6px}.contribute-note .eyebrow{margin:0;font-size:8px}.contribute-note strong{font-size:13px}.contribute-note span{font-size:10px;color:var(--text-muted)}.contribute-note code{font:600 11px var(--mono);color:var(--clay)}.contribute-note>a{font-size:10px;font-weight:700;white-space:nowrap}.contribute-note>a b{margin-left:5px;color:var(--clay)}:root[data-theme="dark"] .contribute-note{border-color:var(--line)}@media(max-width:700px){.contribute-note{padding:23px 22px;display:grid;gap:15px}.contribute-note strong{font-size:12px}.contribute-note span{font-size:9px}}
