@@ -24,5 +24,10 @@ foreach(TEST_SRC ${CUB3_TEST_SOURCES})
         Qt6::Sql
         Qt6::Network
     )
+    if(TEST_NAME STREQUAL "DiscordPresenceTests")
+        target_sources(${TEST_NAME} PRIVATE ../src/discord/DiscordPresence.cpp)
+    elseif(TEST_NAME STREQUAL "EngineWorldTests")
+        target_sources(${TEST_NAME} PRIVATE ../src/engine/World.cpp)
+    endif()
     add_test(NAME ${TEST_NAME} COMMAND ${TEST_NAME})
 endforeach()

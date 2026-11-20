@@ -64,7 +64,7 @@ DiscordPresence::~DiscordPresence() {
 
 bool DiscordPresence::isValidApplicationId(const QString& applicationId) {
     static const QRegularExpression pattern(QStringLiteral("^[0-9]{17,20}$"));
-    return pattern.match(applicationId.trimmed()).hasMatch();
+    return pattern.match(applicationId).hasMatch();
 }
 
 QByteArray DiscordPresence::encodeFrame(quint32 opcode,
