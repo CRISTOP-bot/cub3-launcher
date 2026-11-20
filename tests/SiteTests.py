@@ -116,6 +116,7 @@ class SiteTests(unittest.TestCase):
         self.assertIn('href="downloads/cub3-launcher-windows-x64.zip.sha256"', index)
         self.assertIn('aria-label="Descargar el ZIP portable experimental de CUB3 Launcher para Windows x64"', index)
         self.assertIn('CI VERDE · EXPERIMENTAL', index)
+        self.assertIn('El proyecto mantiene CI para Linux y Windows.', index)
         self.assertIn('El ZIP de Windows se publica aquí tras pasar el CI de Linux y Windows', index)
         self.assertIn('CI compila y prueba Windows', index)
 
