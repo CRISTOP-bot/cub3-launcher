@@ -30,58 +30,11 @@ bool parseObject(const QByteArray& bytes, QJsonObject* object) {
 }
 } // namespace
 
-bool GitLabManager::isValidInstanceUrl(const QUrl& url) {
-    if (!network::HttpClient::isSecureUrl(url)
-        || !url.query().isEmpty() || !url.fragment().isEmpty())
-        return false;
-    const auto segments = url.path().split(QLatin1Char('/'), Qt::SkipEmptyParts);
-    for (const QString& segment : segments) {
-        if (segment == QStringLiteral(".") || segment == QStringLiteral(".."))
-            return false;
-    }
-    return true;
-}
-
-bool GitLabManager::isValidProjectId(const QString& id) {
-    if (id.isEmpty() || id.size() > 20)
-        return false;
-    for (const QChar ch : id) {
-        if (!ch.isDigit()) return false;
-    }
-    bool ok = false;
-    id.toULongLong(&ok);
-    return ok;
-}
-
 GitLabManager::GitLabManager(network::HttpClient* http, QObject* parent)
     : QObject(parent), m_http(http) {
     m_pollTimer.setSingleShot(true);
     connect(&m_pollTimer, &QTimer::timeout, this, &GitLabManager::pollDeviceToken);
     restoreSession();
-}
-
-bool GitLabManager::isValidInstanceUrl(const QUrl& url) {
-    if (!network::HttpClient::isSecureUrl(url)
-        || !url.query().isEmpty() || !url.fragment().isEmpty())
-        return false;
-    const auto segments = url.path().split(QLatin1Char('/'), Qt::SkipEmptyParts);
-    for (const QString& segment : segments) {
-        if (segment == QStringLiteral(".") || segment == QStringLiteral(".."))
-            return false;
-    }
-    return true;
-}
-
-bool GitLabManager::isValidProjectId(const QString& id) {
-    if (id.isEmpty() || id.size() > 20)
-        return false;
-    for (const QChar ch : id) {
-        if (!ch.isDigit())
-            return false;
-    }
-    bool ok = false;
-    id.toULongLong(&ok);
-    return ok;
 }
 
 QUrl GitLabManager::endpoint(const QString& path) const {
