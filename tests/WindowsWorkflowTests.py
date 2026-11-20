@@ -60,6 +60,8 @@ class WindowsWorkflowTests(unittest.TestCase):
         self.assertIn('zlib1g-dev', workflow.split('Install build dependencies', 1)[1])
         self.assertIn('ZLIB::ZLIB', (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8'))
         self.assertIn('ZLIB::ZLIB', (ROOT / 'tests/CMakeLists.txt').read_text(encoding='utf-8'))
+        pages = (ROOT / '.github/workflows/pages.yml').read_text(encoding='utf-8')
+        self.assertIn('zlib1g-dev', pages)
 
     def test_write_access_and_fork_contribution_rules_are_distinct(self):
         contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8').lower()
