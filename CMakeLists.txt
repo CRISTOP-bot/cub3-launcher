@@ -42,6 +42,7 @@ find_package(Qt6 6.2 REQUIRED COMPONENTS
     Concurrent
 )
 find_package(Qt6Keychain REQUIRED CONFIG)
+find_package(ZLIB REQUIRED)
 # ---------------------------------------------------------------------------
 # Compile options tuned for performance without breaking compatibility
 # ---------------------------------------------------------------------------
@@ -109,6 +110,7 @@ target_link_libraries(cub3 PRIVATE
     Qt6::Sql
     Qt6::Concurrent
     Qt6Keychain::Qt6Keychain
+    ZLIB::ZLIB
 )
 
 # ---------------------------------------------------------------------------

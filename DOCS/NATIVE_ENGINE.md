@@ -10,6 +10,8 @@ La implementación es clean-room: reproduce por etapas el comportamiento observa
 
 El parser NBT de `src/engine/Nbt.*` es la primera pieza de lectura de formato del juego: decodifica NBT big-endian con límites configurables para tamaño, elementos y profundidad. Sus fixtures son creados por las pruebas, no tomados de mundos de usuario. Tampoco convierte por sí solo un mundo en algo jugable.
 
-**Todavía no existe una versión C++ instalable ni descargable desde CUB3.** Faltan lectura comprimida de regiones Anvil, carga real de mundos, modelo de bloques, renderizador, controles, simulación, guardado y un runtime funcional. No se debe anunciar una build de Minecraft C++ hasta que exista y se pruebe.
+El lector Anvil puede extraer registros de chunks y descomprimir las variantes gzip, zlib y sin compresión, con un límite configurable para el tamaño de salida. Aún no admite LZ4 ni lee archivos externos `.mcc`; tampoco interpreta el NBT del chunk ni carga el mundo.
+
+**Todavía no existe una versión C++ instalable ni descargable desde CUB3.** Faltan lectura completa de regiones Anvil, carga real de mundos, modelo de bloques, renderizador, controles, simulación, guardado y un runtime funcional. No se debe anunciar una build de Minecraft C++ hasta que exista y se pruebe.
 
 La siguiente etapa debe avanzar en cambios pequeños compilables, con pruebas de formato y comparaciones diferenciales controladas contra Minecraft 26.3 cuando sea posible. Solo cuando haya un runtime nativo real se conectarán su descarga, verificación y lanzamiento a Perfiles de CUB3. La distribución de assets oficiales debe respetar las condiciones de Mojang y depender de la copia legítima del usuario.

@@ -3,7 +3,10 @@
 
 #include <QtTest>
 #include <cstdint>
+#include <string>
+#include <utility>
 #include <vector>
+#include <zlib.h>
 
 namespace {
 using Bytes = std::vector<std::uint8_t>;
@@ -28,6 +31,27 @@ Bytes oneChunk(std::uint8_t marker = 2) {
     bytes[2 * kSectorBytes + 6] = 0xbb;
     bytes[2 * kSectorBytes + 7] = 0xcc;
     return bytes;
+}
+
+Bytes compressFixture(const Bytes& input, int windowBits) {
+    z_stream stream{};
+    if (deflateInit2(&stream, Z_BEST_COMPRESSION, Z_DEFLATED, windowBits,
+                     MAX_MEM_LEVEL, Z_DEFAULT_STRATEGY) != Z_OK)
+        qFatal("deflateInit2 failed for synthetic compression fixture");
+    Bytes result(static_cast<std::size_t>(deflateBound(&stream,
+        static_cast<uLong>(input.size()))));
+    stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(input.data()));
+    stream.avail_in = static_cast<uInt>(input.size());
+    stream.next_out = reinterpret_cast<Bytef*>(result.data());
+    stream.avail_out = static_cast<uInt>(result.size());
+    const int status = deflate(&stream, Z_FINISH);
+    if (status != Z_STREAM_END) {
+        deflateEnd(&stream);
+        qFatal("deflate failed for synthetic compression fixture");
+    }
+    result.resize(static_cast<std::size_t>(stream.total_out));
+    deflateEnd(&stream);
+    return result;
 }
 }
 
@@ -83,6 +107,55 @@ private slots:
         const auto region = cub3::engine::anvil::Region::parse(emptyRegion());
         QVERIFY_EXCEPTION_THROWN(region.chunkAt(-1, 0), cub3::engine::anvil::RegionError);
         QVERIFY_EXCEPTION_THROWN(region.chunkAt(32, 0), cub3::engine::anvil::RegionError);
+    }
+
+    void decompressesGzipAndZlibPayloads() {
+        const Bytes expected{'N', 'B', 'T', 0, 1, 2, 3};
+        for (const auto [type, windowBits] : {std::pair<std::uint8_t, int>{1, MAX_WBITS + 16},
+                                              {2, MAX_WBITS}}) {
+            cub3::engine::anvil::Chunk chunk;
+            chunk.compression = type;
+            chunk.payload = compressFixture(expected, windowBits);
+            QCOMPARE(cub3::engine::anvil::decompressPayload(chunk), expected);
+        }
+    }
+
+    void passesThroughUncompressedPayload() {
+        cub3::engine::anvil::Chunk chunk;
+        chunk.compression = 3;
+        chunk.payload = Bytes{1, 2, 3};
+        QCOMPARE(cub3::engine::anvil::decompressPayload(chunk), (Bytes{1, 2, 3}));
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk, 2),
+                                 cub3::engine::anvil::RegionError);
+    }
+
+    void rejectsCorruptOversizedExternalAndLz4Payloads() {
+        using cub3::engine::anvil::Chunk;
+        using cub3::engine::anvil::RegionError;
+        Chunk chunk;
+        chunk.compression = 2;
+        chunk.payload = compressFixture(Bytes(128, 'x'), MAX_WBITS);
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk, 16), RegionError);
+        chunk.payload = Bytes{0, 1, 2};
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk), RegionError);
+        chunk.compression = 4;
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk), RegionError);
+        chunk.compression = 3;
+        chunk.external = true;
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk), RegionError);
+    }
+
+    void rejectsTruncatedAndTrailingCompressedBytes() {
+        using cub3::engine::anvil::Chunk;
+        using cub3::engine::anvil::RegionError;
+        Chunk chunk;
+        chunk.compression = 2;
+        chunk.payload = compressFixture(Bytes{'a', 'b', 'c'}, MAX_WBITS);
+        chunk.payload.pop_back();
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk), RegionError);
+        chunk.payload = compressFixture(Bytes{'a', 'b', 'c'}, MAX_WBITS);
+        chunk.payload.push_back(0);
+        QVERIFY_EXCEPTION_THROWN(cub3::engine::anvil::decompressPayload(chunk), RegionError);
     }
 };
 

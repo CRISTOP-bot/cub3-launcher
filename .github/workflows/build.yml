@@ -20,7 +20,7 @@ jobs:
       - name: Install build dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y build-essential cmake qt6-base-dev libqt6sql6-sqlite qtkeychain-qt6-dev
+          sudo apt-get install -y build-essential cmake qt6-base-dev libqt6sql6-sqlite qtkeychain-qt6-dev zlib1g-dev
       - name: Configure Release
         run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=ON
       - name: Build
@@ -70,6 +70,8 @@ jobs:
         with:
           path: vcpkg_installed
           key: cub3-vcpkg-installed-windows-2022-x64-v2-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            cub3-vcpkg-installed-windows-2022-x64-v2-
 
       - name: Install Windows dependencies with vcpkg
         shell: pwsh
@@ -137,6 +139,11 @@ jobs:
           $keychain = Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter '*keychain*.dll' | Select-Object -First 1
           if (-not $keychain) { throw 'The QtKeychain runtime DLL was not found in the vcpkg installation' }
           Copy-Item $keychain.FullName $stage
+          $zlibRuntime = @('z.dll', 'zlib1.dll') | ForEach-Object {
+            Get-Item -Path (Join-Path $PWD (Join-Path 'vcpkg_installed/x64-windows/bin' $_)) -ErrorAction SilentlyContinue
+          } | Select-Object -First 1
+          if (-not $zlibRuntime) { throw 'The zlib runtime DLL (z.dll or zlib1.dll) was not found in the vcpkg installation' }
+          Copy-Item $zlibRuntime.FullName $stage
 
           $svgRuntime = Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter '*Svg*.dll' | Select-Object -First 1
           if (-not $svgRuntime) { throw 'The Qt SVG runtime DLL was not found in the vcpkg installation' }

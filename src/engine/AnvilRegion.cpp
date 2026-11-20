@@ -1,9 +1,13 @@
 // Bounded clean-room reader for the Java Edition Anvil region container.
 #include "AnvilRegion.h"
 
+#include <algorithm>
+#include <array>
 #include <bit>
+#include <limits>
 #include <string>
 #include <utility>
+#include <zlib.h>
 
 namespace cub3::engine::anvil {
 namespace {
@@ -83,6 +87,64 @@ Region Region::parse(const std::vector<std::uint8_t>& bytes) {
 
 const std::optional<Chunk>& Region::chunkAt(int localX, int localZ) const {
     return m_chunks[locationIndex(localX, localZ)];
+}
+
+std::vector<std::uint8_t> decompressPayload(const Chunk& chunk, std::size_t maxOutputBytes) {
+    if (chunk.external)
+        throw RegionError("external chunk payload is not available in this reader");
+    if (maxOutputBytes == 0)
+        throw RegionError("decompressed output limit must be greater than zero");
+    if (chunk.compression == 3) {
+        if (chunk.payload.size() > maxOutputBytes)
+            throw RegionError("uncompressed chunk exceeds configured output limit");
+        return chunk.payload;
+    }
+    if (chunk.compression != 1 && chunk.compression != 2)
+        throw RegionError("unsupported Anvil compression type (supported: gzip, zlib, none)");
+    if (chunk.payload.empty())
+        throw RegionError("compressed chunk payload is empty");
+
+    z_stream stream{};
+    const int windowBits = chunk.compression == 1 ? MAX_WBITS + 16 : MAX_WBITS;
+    if (inflateInit2(&stream, windowBits) != Z_OK)
+        throw RegionError("could not initialize zlib decompressor");
+
+    struct InflateGuard final {
+        z_stream* stream;
+        ~InflateGuard() { inflateEnd(stream); }
+    } guard{&stream};
+
+    std::vector<std::uint8_t> output;
+    constexpr std::size_t kOutputBlockBytes = 16U * 1024U;
+    std::array<std::uint8_t, kOutputBlockBytes> block{};
+    std::size_t inputOffset = 0;
+    int status = Z_OK;
+    while (status != Z_STREAM_END) {
+        if (stream.avail_in == 0 && inputOffset < chunk.payload.size()) {
+            const std::size_t count = std::min<std::size_t>(
+                chunk.payload.size() - inputOffset, std::numeric_limits<uInt>::max());
+            stream.next_in = const_cast<Bytef*>(reinterpret_cast<const Bytef*>(
+                chunk.payload.data() + inputOffset));
+            stream.avail_in = static_cast<uInt>(count);
+            inputOffset += count;
+        }
+        stream.next_out = block.data();
+        stream.avail_out = static_cast<uInt>(block.size());
+        status = inflate(&stream, Z_NO_FLUSH);
+        const std::size_t produced = block.size() - stream.avail_out;
+        if (produced > maxOutputBytes - output.size())
+            throw RegionError("decompressed chunk exceeds configured output limit");
+        output.insert(output.end(), block.begin(), block.begin() + static_cast<std::ptrdiff_t>(produced));
+        if (status == Z_STREAM_END)
+            break;
+        if (status != Z_OK)
+            throw RegionError("compressed chunk is corrupt or truncated");
+        if (produced == 0 && stream.avail_in == 0 && inputOffset == chunk.payload.size())
+            throw RegionError("compressed chunk ended before the stream terminator");
+    }
+    if (stream.avail_in != 0 || inputOffset != chunk.payload.size())
+        throw RegionError("trailing bytes after compressed chunk stream");
+    return output;
 }
 
 } // namespace cub3::engine::anvil

@@ -23,6 +23,8 @@ class WindowsWorkflowTests(unittest.TestCase):
         positions = [windows.index('name: ' + name) for name in names]
         self.assertEqual(positions, sorted(positions))
         self.assertIn('actions/cache/restore@v4', windows)
+        self.assertIn('restore-keys:', windows)
+        self.assertIn('cub3-vcpkg-installed-windows-2022-x64-v2-', windows)
         self.assertIn('actions/cache/save@v4', windows)
         self.assertIn("hashFiles('vcpkg.json')", windows)
         self.assertIn('--x-manifest-root=$PWD', windows)
@@ -45,6 +47,19 @@ class WindowsWorkflowTests(unittest.TestCase):
         # This vcpkg baseline downloads PCRE2's pinned sljit archive directly;
         # the newer port calls api.github.com/contents and fails on runner 403.
         self.assertEqual(ref.group(1), '2d82b86eeb840b04d593405a968f8aa03609681d')
+
+    def test_zlib_is_installed_and_staged_for_the_native_region_reader(self):
+        import json
+
+        workflow = (ROOT / '.github/workflows/build.yml').read_text(encoding='utf-8')
+        manifest = json.loads((ROOT / 'vcpkg.json').read_text(encoding='utf-8'))
+        self.assertIn('zlib', manifest['dependencies'])
+        self.assertIn('z.dll', workflow)
+        self.assertIn('zlib1.dll', workflow)
+        self.assertIn('zlib runtime DLL (z.dll or zlib1.dll)', workflow)
+        self.assertIn('zlib1g-dev', workflow.split('Install build dependencies', 1)[1])
+        self.assertIn('ZLIB::ZLIB', (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8'))
+        self.assertIn('ZLIB::ZLIB', (ROOT / 'tests/CMakeLists.txt').read_text(encoding='utf-8'))
 
     def test_write_access_and_fork_contribution_rules_are_distinct(self):
         contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8').lower()

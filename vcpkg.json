@@ -16,6 +16,7 @@
       ]
     },
     "qtkeychain-qt6",
-    "qtsvg"
+    "qtsvg",
+    "zlib"
   ]
 }
