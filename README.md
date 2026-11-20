@@ -155,6 +155,10 @@ ID de cliente de una aplicación pública configurado en
 `CUB3_MICROSOFT_CLIENT_ID` o en las preferencias de CUB3. No incluyas
 credenciales, tokens ni secretos en commits, capturas o reportes públicos.
 
+## Integración con GitLab
+
+CUB3 ofrece una conexión OAuth de solo lectura para consultar proyectos, ramas, commits, etiquetas y releases de GitLab. Consulta [`DOCS/GITLAB.md`](DOCS/GITLAB.md) para configurar la aplicación OAuth y conocer el alcance; no sincroniza ni instala código o perfiles de Minecraft.
+
 ## Estructura del repositorio
 
 - `src/`: aplicación C++ y Qt.

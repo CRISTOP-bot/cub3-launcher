@@ -26,6 +26,10 @@ namespace cub3::auth {
 class AuthManager;
 }
 
+namespace cub3::gitlab {
+class GitLabManager;
+}
+
 namespace cub3::application {
 
 class LaunchEngine;
@@ -54,6 +58,7 @@ public:
     [[nodiscard]] network::DownloadEngine& downloadEngine();
     [[nodiscard]] versions::VersionManager& versionManager();
     [[nodiscard]] auth::AuthManager& authManager();
+    [[nodiscard]] gitlab::GitLabManager& gitLabManager();
     [[nodiscard]] LaunchEngine& launchEngine();
     [[nodiscard]] ui::windows::MainWindow* window() const { return m_window; }
 
@@ -79,6 +84,7 @@ private:
     network::DownloadEngine* m_downloads{nullptr};
     versions::VersionManager* m_versions{nullptr};
     auth::AuthManager* m_auth{nullptr};
+    gitlab::GitLabManager* m_gitLab{nullptr};
     LaunchEngine* m_launcher{nullptr};
     bool m_deferredInitialized{false};
 };
