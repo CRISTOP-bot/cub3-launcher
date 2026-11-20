@@ -1,21 +1,13 @@
 name: Publicar sitio
 
 on:
-  push:
+  workflow_run:
+    workflows: ["Build and test"]
+    types: [completed]
     branches: [dev]
-    paths:
-      - "site/**"
-      - "src/**"
-      - "CMakeLists.txt"
-      - "resources/**"
-      - "assets/icons/**"
-      - "tests/**"
-      - "assets/images/**"
-      - "assets/logos/**"
-      - ".github/workflows/pages.yml"
-  workflow_dispatch:
 
 permissions:
+  actions: read
   contents: read
   pages: write
   id-token: write
@@ -26,6 +18,7 @@ concurrency:
 
 jobs:
   deploy:
+    if: github.event.workflow_run.event == 'push' && github.event.workflow_run.conclusion == 'success'
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
@@ -39,10 +32,24 @@ jobs:
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates git build-essential cmake python3 qt6-base-dev \
             libqt6sql6-sqlite qtkeychain-qt6-dev unzip file
-      - name: Descargar código
+      - name: Descargar código del commit validado
         uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+      - name: Descargar ZIP de Windows del mismo CI exitoso
+        uses: actions/download-artifact@v4
+        with:
+          name: cub3-launcher-windows-x64
+          path: windows-artifact
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          repository: ${{ github.repository }}
+          run-id: ${{ github.event.workflow_run.id }}
+      - name: Verificar y preparar ZIP de Windows y su checksum
+        run: python3 scripts/stage_windows_bundle.py windows-artifact site/downloads
       - name: Validar sitio y referencias locales
-        run: python3 tests/SiteTests.py
+        run: |
+          python3 tests/SiteTests.py
+          python3 tests/WindowsBundleTests.py
       - name: Compilar paquete .deb de desarrollo
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
@@ -91,10 +98,18 @@ jobs:
           cp site/assets/logos/*.svg _site/assets/logos/
           cp site/assets/platforms/*.png _site/assets/platforms/
           cp site/downloads/cub3-launcher-dev-amd64.deb _site/downloads/
+          cp site/downloads/cub3-launcher-windows-x64.zip site/downloads/cub3-launcher-windows-x64.zip.sha256 _site/downloads/
       - name: Comprobar paquete y recursos publicados
         run: |
           test -s _site/downloads/cub3-launcher-dev-amd64.deb
+          test -s _site/downloads/cub3-launcher-windows-x64.zip
+          test -s _site/downloads/cub3-launcher-windows-x64.zip.sha256
           file _site/downloads/cub3-launcher-dev-amd64.deb | grep -q 'Debian binary package'
+          verification_dir=$(mktemp -d)
+          trap 'rm -rf "$verification_dir"' EXIT
+          python3 scripts/stage_windows_bundle.py _site/downloads "$verification_dir"
+          cmp _site/downloads/cub3-launcher-windows-x64.zip "$verification_dir/cub3-launcher-windows-x64.zip"
+          cmp _site/downloads/cub3-launcher-windows-x64.zip.sha256 "$verification_dir/cub3-launcher-windows-x64.zip.sha256"
           for asset in cherry-grove.png launcher-preview.png; do test -s "_site/assets/$asset"; done
           for logo in linux.png windows.png macos.png; do test -s "_site/assets/platforms/$logo"; done
           test -s _site/assets/logos/cub3-logo-01-island.svg
