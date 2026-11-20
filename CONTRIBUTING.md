@@ -1,22 +1,24 @@
 # Contribuir a CUB3 Launcher
 
-Gracias por ayudar a mejorar CUB3. Los cambios de código, correcciones,
-documentación, recursos y sitio web deben integrarse en la rama **`dev`**, que
-es la rama activa y predeterminada. `dev` permite pushes directos; se
-recomienda usar ramas cortas y PR para cambios amplios. `main` está protegida y
-no acepta commits directos; se reserva para promociones estables mediante PR.
+Gracias por ayudar a mejorar CUB3. **Toda contribución debe enviarse mediante
+una pull request (PR) dirigida a `dev`; no se aceptan contribuciones mediante
+push o commits directos a las ramas del proyecto.** Esto aplica al código,
+correcciones, documentación, recursos y sitio web. `dev` es la rama activa y
+predeterminada; `main` se reserva para promociones estables aprobadas por PR.
 
 ## Preparar el entorno
 
 ```sh
-git clone https://github.com/CRISTOP-bot/cub3-launcher.git
+# Haz fork del repositorio en GitHub y clona tu fork
+git clone https://github.com/TU-USUARIO/cub3-launcher.git
 cd cub3-launcher
-git switch dev
-git pull --ff-only origin dev
+git remote add upstream https://github.com/CRISTOP-bot/cub3-launcher.git
+git fetch upstream
+git switch -c feat/descripcion-del-cambio upstream/dev
 ```
 
-Puedes trabajar directamente en `dev` o crear una rama corta para proponer un
-PR dirigido a `dev`.
+Trabaja siempre en una rama propia basada en `upstream/dev`, súbela a tu fork
+y abre una PR con destino `dev`. No hagas push directo a `dev` ni a `main`.
 
 Consulta los requisitos y pasos de compilación en el [README](README.md).
 
@@ -48,10 +50,11 @@ Improve mobile download layout
 
 ## Integración
 
-Integra los cambios regulares en `dev`. Si abres una solicitud de integración,
-configura **`dev` como rama destino** y explica el cambio, cómo se verificó y
-cualquier limitación conocida. `main` requiere PR y se mantiene para
-promociones estables aprobadas por el mantenedor.
+Todas las contribuciones deben integrarse mediante una pull request a `dev`.
+No se aceptan pushes directos, aunque tengas permisos de escritura. Configura
+**`dev` como rama destino** y explica el cambio, cómo se verificó y cualquier
+limitación conocida. `main` también requiere PR y se mantiene para promociones
+estables aprobadas por el mantenedor.
 
 ## Reportar errores
 

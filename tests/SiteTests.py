@@ -95,6 +95,16 @@ class SiteTests(unittest.TestCase):
         self.assertIn('prefers-reduced-motion:reduce', css)
         self.assertIn('backdrop-filter:blur(18px)', css)
 
+    def test_contributions_are_pull_request_only(self):
+        index = (SITE / 'index.html').read_text(encoding='utf-8')
+        contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8')
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8')
+        self.assertIn('Todos los cambios se envían mediante pull request a', index)
+        self.assertIn('no se aceptan contribuciones con push directo', index.lower())
+        self.assertIn('CONTRIBUTING.md', index)
+        self.assertIn('no se aceptan contribuciones mediante', contributing)
+        self.assertIn('No se aceptan pushes ni commits directos', readme)
+
     def test_windows_checkout_has_parent_for_diff_check(self):
         workflow = (ROOT / '.github/workflows/build.yml').read_text(encoding='utf-8')
         windows = workflow.split('  windows-release:', 1)[1]
