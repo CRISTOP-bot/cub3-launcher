@@ -60,7 +60,7 @@ Minecraft. Validación de compilación Release y revisión de formato con
 ## Funciones nuevas aún sin verificación manual
 
 - **Discord Rich Presence:** el cliente opcional usa el IPC local de Discord y requiere un Application ID público configurado por el usuario. La presencia indica solo el launcher o la versión de Minecraft; no anuncia usuario, mundo ni servidor. Las pruebas automáticas validan el encuadre del protocolo y el formato del ID, no una sesión real con Discord.
-- **Motor nativo C++:** `src/engine/` contiene generación determinista de un terreno voxel básico y acceso a bloques/chunks. Aún no hay renderizador, controles ni juego ejecutable; tampoco se afirma compatibilidad con Minecraft. Ver [`NATIVE_ENGINE.md`](NATIVE_ENGINE.md).
+- **Motor nativo C++:** `src/engine/World.*` es solo un prototipo voxel básico, y `src/engine/Nbt.*` añade un parser NBT probado con fixtures sintéticos. CUB3 todavía no descarga ni ejecuta una edición nativa; no hay carga completa de mundos, renderizador ni juego ejecutable, y no se afirma paridad con Minecraft. Ver [`NATIVE_ENGINE.md`](NATIVE_ENGINE.md) y [`CPP_EDITION.md`](CPP_EDITION.md).
 
 - **Título C++ Edition:** para Minecraft 26.3 se añade un paquete de recursos local que reemplaza únicamente `assets/minecraft/textures/gui/title/edition.png`. CUB3 lo activa en `options.txt` si el ajuste está encendido y lo deselecciona al apagarlo. No se parchea ni redistribuye el JAR de Minecraft. La validación automatizada no sustituye la comprobación visual en el juego real.
 
