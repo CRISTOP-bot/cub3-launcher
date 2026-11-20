@@ -70,6 +70,8 @@ jobs:
         with:
           path: vcpkg_installed
           key: cub3-vcpkg-installed-windows-2022-x64-v2-${{ hashFiles('vcpkg.json') }}
+          restore-keys: |
+            cub3-vcpkg-installed-windows-2022-x64-v2-
 
       - name: Install Windows dependencies with vcpkg
         shell: pwsh

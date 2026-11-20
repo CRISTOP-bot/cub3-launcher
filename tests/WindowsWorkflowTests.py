@@ -23,6 +23,8 @@ class WindowsWorkflowTests(unittest.TestCase):
         positions = [windows.index('name: ' + name) for name in names]
         self.assertEqual(positions, sorted(positions))
         self.assertIn('actions/cache/restore@v4', windows)
+        self.assertIn('restore-keys:', windows)
+        self.assertIn('cub3-vcpkg-installed-windows-2022-x64-v2-', windows)
         self.assertIn('actions/cache/save@v4', windows)
         self.assertIn("hashFiles('vcpkg.json')", windows)
         self.assertIn('--x-manifest-root=$PWD', windows)
