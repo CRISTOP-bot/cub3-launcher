@@ -57,6 +57,11 @@ Minecraft. Validación de compilación Release y revisión de formato con
   el manifiesto de Minecraft. En Debian/Ubuntu, Java 25 se instala con
   `sudo apt install openjdk-25-jre-headless`.
 
+## Funciones nuevas aún sin verificación manual
+
+- **Discord Rich Presence:** el cliente opcional usa el IPC local de Discord y requiere un Application ID público configurado por el usuario. La presencia indica solo el launcher o la versión de Minecraft; no anuncia usuario, mundo ni servidor. Las pruebas automáticas validan el encuadre del protocolo y el formato del ID, no una sesión real con Discord.
+- **Motor nativo C++:** `src/engine/` contiene generación determinista de un terreno voxel básico y acceso a bloques/chunks. Aún no hay renderizador, controles ni juego ejecutable; tampoco se afirma compatibilidad con Minecraft. Ver [`NATIVE_ENGINE.md`](NATIVE_ENGINE.md).
+
 ## Comprobaciones
 
 ```sh

@@ -37,6 +37,7 @@ public:
 signals:
     void statusChanged(const QString& status);
     void launchFailed(const QString& message);
+    void gameStarted(const QString& versionId);
     void gameFinished(int exitCode);
 
 private:
