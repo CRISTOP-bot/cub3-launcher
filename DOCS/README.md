@@ -9,3 +9,4 @@ tomarlo como garantía del estado actual.
 
 - [Discord Rich Presence](DISCORD.md)
 - [Base del motor nativo C++](NATIVE_ENGINE.md)
+- [Título C++ Edition en Minecraft 26.3](CPP_EDITION_TITLE.md)

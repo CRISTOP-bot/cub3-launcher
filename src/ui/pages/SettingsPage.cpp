@@ -310,6 +310,22 @@ void SettingsPage::setupUi() {
     appGroup->setObjectName(QStringLiteral("SettingsGroup"));
     bodyLayout->addWidget(appGroup);
 
+    auto* titlePackGroup = new QGroupBox(QStringLiteral("Título del juego"), body);
+    titlePackGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    auto* titlePackLayout = new QVBoxLayout(titlePackGroup);
+    auto* titlePackNotice = new QLabel(
+        QStringLiteral("Cambia solo la leyenda visual del menú de Minecraft Java Edition a C++ Edition mediante un paquete de recursos local. No modifica el JAR ni cambia el motor Java del juego. Funciona con Minecraft 26.3."),
+        titlePackGroup);
+    titlePackNotice->setWordWrap(true);
+    titlePackNotice->setObjectName(QStringLiteral("Secondary"));
+    titlePackLayout->addWidget(titlePackNotice);
+    m_cppEditionTitle = new QCheckBox(
+        QStringLiteral("Mostrar C++ Edition en el menú de título"), titlePackGroup);
+    m_cppEditionTitle->setAccessibleName(
+        QStringLiteral("Cambiar la leyenda del título de Minecraft a C++ Edition"));
+    titlePackLayout->addWidget(m_cppEditionTitle);
+    bodyLayout->addWidget(titlePackGroup);
+
     auto* discordGroup = new QGroupBox(QStringLiteral("Discord · presencia enriquecida"), body);
     discordGroup->setObjectName(QStringLiteral("SettingsGroup"));
     auto* discordLayout = new QVBoxLayout(discordGroup);
@@ -408,6 +424,7 @@ void SettingsPage::setupUi() {
     connect(m_resolutionW, &QSpinBox::valueChanged, this, markDirty);
     connect(m_resolutionH, &QSpinBox::valueChanged, this, markDirty);
     connect(m_discordEnabled, &QCheckBox::toggled, this, markDirty);
+    connect(m_cppEditionTitle, &QCheckBox::toggled, this, markDirty);
     connect(m_discordApplicationId, &QLineEdit::textChanged, this, markDirty);
 }
 
@@ -430,6 +447,7 @@ void SettingsPage::loadSettings() {
     m_resolutionW->setValue(settings.resolutionWidth());
     m_resolutionH->setValue(settings.resolutionHeight());
     m_discordEnabled->setChecked(settings.get(QStringLiteral("discord/enabled"), false).toBool());
+    m_cppEditionTitle->setChecked(settings.get(QStringLiteral("game/cpp_edition_title"), true).toBool());
     m_discordApplicationId->setText(settings.get(QStringLiteral("discord/application_id")).toString());
 }
 
@@ -555,6 +573,7 @@ void SettingsPage::onSave() {
     settings.setResolutionWidth(m_resolutionW->value());
     settings.setResolutionHeight(m_resolutionH->value());
     settings.set(QStringLiteral("discord/application_id"), discordApplicationId);
+    settings.set(QStringLiteral("game/cpp_edition_title"), m_cppEditionTitle->isChecked());
     settings.set(QStringLiteral("discord/enabled"), m_discordEnabled->isChecked());
     m_app->discordPresence().configure(m_discordEnabled->isChecked(), discordApplicationId);
     m_app->downloadEngine().setMaxConcurrent(m_concurrencySpin->value());

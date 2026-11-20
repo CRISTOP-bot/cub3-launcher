@@ -47,6 +47,7 @@ Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
 
 - Inicio de sesión con Microsoft y Ely.by.
 - Presencia enriquecida opcional de Discord: muestra CUB3 y la versión de Minecraft en ejecución; no publica nombres de jugador, mundos ni direcciones de servidores. Consulta [la guía de Discord](DOCS/DISCORD.md).
+- En Minecraft 26.3, reemplazo opcional de la leyenda visual «Java Edition» por «C++ Edition» mediante un paquete de recursos original local; no altera ni parchea el JAR. Consulta [la guía del título C++ Edition](DOCS/CPP_EDITION_TITLE.md).
 - Restauración automática de sesión desde el llavero seguro del sistema.
 - Instalación y ejecución de versiones vanilla.
 - Búsqueda y orden por nombre o versión de instalaciones locales en Perfiles, con acceso directo a la carpeta existente de cada instalación.
