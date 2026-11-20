@@ -553,6 +553,7 @@ void LaunchEngine::startGame() {
     connect(m_process, &QProcess::started, this, [this] {
         m_launching = false;
         saveInstallation(m_process->workingDirectory());
+        emit gameStarted(m_versionId);
         emit statusChanged(QStringLiteral("Minecraft está ejecutándose."));
     });
     connect(m_process, &QProcess::errorOccurred, this,

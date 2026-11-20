@@ -46,6 +46,7 @@ Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
 ## Funciones
 
 - Inicio de sesión con Microsoft y Ely.by.
+- Presencia enriquecida opcional de Discord: muestra CUB3 y la versión de Minecraft en ejecución; no publica nombres de jugador, mundos ni direcciones de servidores. Consulta [la guía de Discord](DOCS/DISCORD.md).
 - Restauración automática de sesión desde el llavero seguro del sistema.
 - Instalación y ejecución de versiones vanilla.
 - Búsqueda y orden por nombre o versión de instalaciones locales en Perfiles, con acceso directo a la carpeta existente de cada instalación.
@@ -146,6 +147,10 @@ cuando corresponde antes de mostrarla como autenticada. Microsoft requiere un
 ID de cliente de una aplicación pública configurado en
 `CUB3_MICROSOFT_CLIENT_ID` o en las preferencias de CUB3. No incluyas
 credenciales, tokens ni secretos en commits, capturas o reportes públicos.
+
+## Motor nativo C++ (experimental)
+
+El repositorio inicia una base propia de mundo voxel en `src/engine/`: chunks de 16×128×16, bloques básicos, generación determinista de terreno y conversión correcta de coordenadas negativas. Todavía no incluye renderizador, controles, guardado de mundos, multijugador ni compatibilidad con partidas o recursos de Minecraft; no es todavía un juego jugable ni una reimplementación compatible. Consulta [`DOCS/NATIVE_ENGINE.md`](DOCS/NATIVE_ENGINE.md).
 
 ## Integración con GitLab
 

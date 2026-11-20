@@ -30,6 +30,10 @@ namespace cub3::gitlab {
 class GitLabManager;
 }
 
+namespace cub3::discord {
+class DiscordPresence;
+}
+
 namespace cub3::application {
 
 class LaunchEngine;
@@ -59,6 +63,7 @@ public:
     [[nodiscard]] versions::VersionManager& versionManager();
     [[nodiscard]] auth::AuthManager& authManager();
     [[nodiscard]] gitlab::GitLabManager& gitLabManager();
+    [[nodiscard]] discord::DiscordPresence& discordPresence();
     [[nodiscard]] LaunchEngine& launchEngine();
     [[nodiscard]] ui::windows::MainWindow* window() const { return m_window; }
 
@@ -74,6 +79,7 @@ private:
     bool initStorage();
     void initNetwork();
     void deferredInit();
+    void wireDiscordPresence();
 
     ui::windows::MainWindow* m_window{nullptr};
 
@@ -85,8 +91,10 @@ private:
     versions::VersionManager* m_versions{nullptr};
     auth::AuthManager* m_auth{nullptr};
     gitlab::GitLabManager* m_gitLab{nullptr};
+    discord::DiscordPresence* m_discord{nullptr};
     LaunchEngine* m_launcher{nullptr};
     bool m_deferredInitialized{false};
+    bool m_discordWired{false};
 };
 
 } // namespace cub3::application

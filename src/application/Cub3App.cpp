@@ -14,6 +14,7 @@
 #include "versions/VersionManager.h"
 #include "auth/AuthManager.h"
 #include "gitlab/GitLabManager.h"
+#include "discord/DiscordPresence.h"
 
 #include <QTimer>
 #include <QStandardPaths>
@@ -42,6 +43,9 @@ void Cub3App::showWindow() {
     // Phase 2: Initialise storage (fast, local)
     if (!initStorage())
         return;
+
+    // Rich Presence is opt-in and talks only to a local Discord desktop client.
+    (void)discordPresence();
 
     // Phase 3: Schedule network-dependent init on the next event loop tick.
     // This allows the window to paint before we do any blocking work.
@@ -167,10 +171,42 @@ gitlab::GitLabManager& Cub3App::gitLabManager() {
     return *m_gitLab;
 }
 
+discord::DiscordPresence& Cub3App::discordPresence() {
+    if (!m_discord) {
+        m_discord = new discord::DiscordPresence(this);
+        if (m_settings) {
+            const bool enabled = m_settings->get(
+                QStringLiteral("discord/enabled"), false).toBool();
+            const QString applicationId = m_settings->get(
+                QStringLiteral("discord/application_id")).toString();
+            m_discord->configure(enabled, applicationId);
+        }
+        wireDiscordPresence();
+    }
+    return *m_discord;
+}
+
+void Cub3App::wireDiscordPresence() {
+    if (m_discordWired || !m_launcher || !m_discord)
+        return;
+    connect(m_launcher, &LaunchEngine::gameStarted, m_discord,
+            [this](const QString& versionId) {
+        m_discord->setActivity(QStringLiteral("Jugando Minecraft %1").arg(versionId),
+                               QStringLiteral("Minecraft Java Edition"));
+    });
+    connect(m_launcher, &LaunchEngine::gameFinished, m_discord,
+            [this](int) {
+        m_discord->setActivity(QStringLiteral("En el launcher"),
+                               QStringLiteral("Preparando tu próxima partida"));
+    });
+    m_discordWired = true;
+}
+
 LaunchEngine& Cub3App::launchEngine() {
     if (!m_launcher) {
         m_launcher = new LaunchEngine(&versionManager(), &downloadEngine(),
                                       &httpClient(), &database(), &settings(), this);
+        wireDiscordPresence();
     }
     return *m_launcher;
 }

@@ -6,6 +6,7 @@
 #include "storage/Settings.h"
 #include "network/DownloadEngine.h"
 #include "gitlab/GitLabManager.h"
+#include "discord/DiscordPresence.h"
 
 #include <QDesktopServices>
 #include <QComboBox>
@@ -141,6 +142,11 @@ SettingsPage::SettingsPage(cub3::application::Cub3App* app, QWidget* parent)
             this, &SettingsPage::onGitLabProjectChanged);
     connect(m_gitLabRefreshButton, &QPushButton::clicked,
             this, &SettingsPage::onGitLabRefreshProjects);
+
+    auto& discord = m_app->discordPresence();
+    connect(&discord, &cub3::discord::DiscordPresence::statusChanged,
+            m_discordStatus, &QLabel::setText);
+    m_discordStatus->setText(discord.status());
 }
 
 void SettingsPage::setupUi() {
@@ -304,6 +310,30 @@ void SettingsPage::setupUi() {
     appGroup->setObjectName(QStringLiteral("SettingsGroup"));
     bodyLayout->addWidget(appGroup);
 
+    auto* discordGroup = new QGroupBox(QStringLiteral("Discord · presencia enriquecida"), body);
+    discordGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    auto* discordLayout = new QVBoxLayout(discordGroup);
+    auto* discordNotice = new QLabel(
+        QStringLiteral("Muestra CUB3 en tu perfil de Discord cuando el launcher o Minecraft estén activos. Se conecta solo al Discord de escritorio en este equipo; no envía tu nombre, mundo ni servidor. Necesitas el ID público de una aplicación de Discord.") ,
+        discordGroup);
+    discordNotice->setWordWrap(true);
+    discordNotice->setObjectName(QStringLiteral("Secondary"));
+    discordLayout->addWidget(discordNotice);
+    auto* discordForm = new QFormLayout();
+    m_discordApplicationId = new QLineEdit(discordGroup);
+    m_discordApplicationId->setPlaceholderText(QStringLiteral("ID de aplicación (solo números)"));
+    m_discordApplicationId->setAccessibleName(QStringLiteral("ID público de la aplicación Discord"));
+    m_discordApplicationId->setToolTip(QStringLiteral("Es el Application ID público; no introduzcas un token ni un secreto."));
+    discordForm->addRow(QStringLiteral("Application ID:"), m_discordApplicationId);
+    discordLayout->addLayout(discordForm);
+    m_discordEnabled = new QCheckBox(QStringLiteral("Activar Discord Rich Presence"), discordGroup);
+    m_discordEnabled->setAccessibleName(QStringLiteral("Activar presencia enriquecida de Discord"));
+    discordLayout->addWidget(m_discordEnabled);
+    m_discordStatus = new QLabel(QStringLiteral("Desactivado"), discordGroup);
+    m_discordStatus->setWordWrap(true);
+    discordLayout->addWidget(m_discordStatus);
+    bodyLayout->addWidget(discordGroup);
+
     auto* gitLabGroup = new QGroupBox(QStringLiteral("GitLab · proyectos y releases"), body);
     gitLabGroup->setObjectName(QStringLiteral("SettingsGroup"));
     auto* gitLabLayout = new QVBoxLayout(gitLabGroup);
@@ -377,6 +407,8 @@ void SettingsPage::setupUi() {
     connect(m_validateDownloadsCheck, &QCheckBox::toggled, this, markDirty);
     connect(m_resolutionW, &QSpinBox::valueChanged, this, markDirty);
     connect(m_resolutionH, &QSpinBox::valueChanged, this, markDirty);
+    connect(m_discordEnabled, &QCheckBox::toggled, this, markDirty);
+    connect(m_discordApplicationId, &QLineEdit::textChanged, this, markDirty);
 }
 
 void SettingsPage::loadSettings() {
@@ -397,6 +429,8 @@ void SettingsPage::loadSettings() {
     m_validateDownloadsCheck->setChecked(settings.validateDownloads());
     m_resolutionW->setValue(settings.resolutionWidth());
     m_resolutionH->setValue(settings.resolutionHeight());
+    m_discordEnabled->setChecked(settings.get(QStringLiteral("discord/enabled"), false).toBool());
+    m_discordApplicationId->setText(settings.get(QStringLiteral("discord/application_id")).toString());
 }
 
 void SettingsPage::onJavaBrowse() {
@@ -501,6 +535,16 @@ void SettingsPage::onSave() {
         return;
     }
 
+    const QString discordApplicationId = m_discordApplicationId->text().trimmed();
+    if (m_discordEnabled->isChecked()
+        && !cub3::discord::DiscordPresence::isValidApplicationId(discordApplicationId)) {
+        m_saveStatus->setProperty("state", "error");
+        m_saveStatus->setText(QStringLiteral("Para activar Discord, escribe un Application ID público válido (17–20 dígitos)."));
+        m_saveStatus->style()->unpolish(m_saveStatus);
+        m_saveStatus->style()->polish(m_saveStatus);
+        return;
+    }
+
     auto& settings = m_app->settings();
     settings.setJavaPath(javaPath);
     settings.setRamMinMB(m_ramMinSlider->value());
@@ -510,6 +554,9 @@ void SettingsPage::onSave() {
     settings.setValidateDownloads(m_validateDownloadsCheck->isChecked());
     settings.setResolutionWidth(m_resolutionW->value());
     settings.setResolutionHeight(m_resolutionH->value());
+    settings.set(QStringLiteral("discord/application_id"), discordApplicationId);
+    settings.set(QStringLiteral("discord/enabled"), m_discordEnabled->isChecked());
+    m_app->discordPresence().configure(m_discordEnabled->isChecked(), discordApplicationId);
     m_app->downloadEngine().setMaxConcurrent(m_concurrencySpin->value());
     m_app->downloadEngine().setValidateDownloads(
         m_validateDownloadsCheck->isChecked());

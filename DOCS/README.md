@@ -6,3 +6,6 @@
 CUB3 es un proyecto experimental que lleva apenas unos días de desarrollo; no
 se considera estable. Revisa la fecha y el alcance de cada documento antes de
 tomarlo como garantía del estado actual.
+
+- [Discord Rich Presence](DISCORD.md)
+- [Base del motor nativo C++](NATIVE_ENGINE.md)

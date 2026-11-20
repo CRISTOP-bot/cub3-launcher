@@ -71,6 +71,9 @@ private:
     QTextBrowser* m_gitLabDetails{nullptr};
     QPushButton* m_gitLabConnectButton{nullptr};
     QPushButton* m_gitLabRefreshButton{nullptr};
+    QCheckBox* m_discordEnabled{nullptr};
+    QLineEdit* m_discordApplicationId{nullptr};
+    QLabel* m_discordStatus{nullptr};
 };
 
 } // namespace cub3::ui::pages
