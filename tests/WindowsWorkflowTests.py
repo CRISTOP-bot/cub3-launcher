@@ -32,6 +32,28 @@ class WindowsWorkflowTests(unittest.TestCase):
         self.assertIn("if ($LASTEXITCODE -ne 0) { throw 'Windows vcpkg dependency installation failed' }", windows)
         self.assertIn('ctest --test-dir build -C Release --output-on-failure', windows)
 
+    def test_registry_and_manifest_are_pinned_to_the_same_verified_baseline(self):
+        import json
+        import re
+
+        workflow = (ROOT / '.github/workflows/build.yml').read_text(encoding='utf-8')
+        windows = workflow.split('  windows-release:', 1)[1]
+        ref = re.search(r'repository: microsoft/vcpkg\s+ref: ([0-9a-f]{40})', windows)
+        self.assertIsNotNone(ref, 'Windows must checkout an immutable vcpkg commit')
+        manifest = json.loads((ROOT / 'vcpkg.json').read_text(encoding='utf-8'))
+        self.assertEqual(manifest['builtin-baseline'], ref.group(1))
+        # This vcpkg baseline downloads PCRE2's pinned sljit archive directly;
+        # the newer port calls api.github.com/contents and fails on runner 403.
+        self.assertEqual(ref.group(1), '2d82b86eeb840b04d593405a968f8aa03609681d')
+
+    def test_all_pull_requests_target_dev_and_reuse_existing_fork_branch(self):
+        contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8')
+        self.assertIn('Todos los PR deben tener **`dev` como rama destino**', contributing)
+        self.assertIn('rama de trabajo existente en tu fork', contributing)
+        normalized = ' '.join(contributing.split())
+        self.assertIn('no crees una rama adicional en el repositorio original', normalized)
+        self.assertNotIn('git switch -c', contributing)
+
 
 if __name__ == '__main__':
     unittest.main()
