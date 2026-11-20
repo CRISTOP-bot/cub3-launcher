@@ -51,7 +51,19 @@ BlockType Chunk::blockAt(int localX, int y, int localZ) const {
 bool Chunk::setBlock(int localX, int y, int localZ, BlockType block) {
     if (!contains(localX, y, localZ))
         return false;
+
     m_blocks[index(localX, y, localZ)] = block;
+    const std::size_t column = static_cast<std::size_t>(localZ * kChunkWidth + localX);
+    const int oldSurface = m_surface[column] == 255 ? -1 : m_surface[column];
+    if (block != BlockType::Air) {
+        if (y > oldSurface)
+            m_surface[column] = static_cast<std::uint8_t>(y);
+    } else if (y == oldSurface) {
+        int newSurface = y - 1;
+        while (newSurface >= 0 && m_blocks[index(localX, newSurface, localZ)] == BlockType::Air)
+            --newSurface;
+        m_surface[column] = newSurface < 0 ? 255 : static_cast<std::uint8_t>(newSurface);
+    }
     return true;
 }
 
@@ -59,13 +71,53 @@ int Chunk::surfaceHeight(int localX, int localZ) const {
     if (localX < 0 || localX >= kChunkWidth
         || localZ < 0 || localZ >= kChunkDepth)
         return -1;
-    return m_surface[static_cast<std::size_t>(localZ * kChunkWidth + localX)];
+    const std::uint8_t height = m_surface[static_cast<std::size_t>(localZ * kChunkWidth + localX)];
+    return height == 255 ? -1 : static_cast<int>(height);
 }
 
 BlockCoordinates splitBlockCoordinates(int x, int z) {
     const int chunkX = floorDiv(x, kChunkWidth);
     const int chunkZ = floorDiv(z, kChunkDepth);
     return {chunkX, chunkZ, x - chunkX * kChunkWidth, z - chunkZ * kChunkDepth};
+}
+
+std::size_t World::ChunkPositionHash::operator()(ChunkPosition position) const noexcept {
+    const std::uint64_t packed = (static_cast<std::uint64_t>(
+        static_cast<std::uint32_t>(position.x)) << 32U)
+        | static_cast<std::uint32_t>(position.z);
+    return static_cast<std::size_t>(mix(packed));
+}
+
+Chunk& World::ensureChunk(int chunkX, int chunkZ) {
+    const ChunkPosition position{chunkX, chunkZ};
+    const auto [iterator, inserted] = m_chunks.try_emplace(position, m_seed, chunkX, chunkZ);
+    (void)inserted;
+    return iterator->second;
+}
+
+BlockType World::blockAt(int worldX, int y, int worldZ) {
+    if (y < 0 || y >= kChunkHeight)
+        return BlockType::Air;
+    const BlockCoordinates coordinates = splitBlockCoordinates(worldX, worldZ);
+    return ensureChunk(coordinates.chunkX, coordinates.chunkZ)
+        .blockAt(coordinates.localX, y, coordinates.localZ);
+}
+
+bool World::setBlock(int worldX, int y, int worldZ, BlockType block) {
+    if (y < 0 || y >= kChunkHeight)
+        return false;
+    const BlockCoordinates coordinates = splitBlockCoordinates(worldX, worldZ);
+    return ensureChunk(coordinates.chunkX, coordinates.chunkZ)
+        .setBlock(coordinates.localX, y, coordinates.localZ, block);
+}
+
+const Chunk* World::findChunk(int chunkX, int chunkZ) const noexcept {
+    const auto iterator = m_chunks.find(ChunkPosition{chunkX, chunkZ});
+    return iterator == m_chunks.end() ? nullptr : &iterator->second;
+}
+
+bool World::unloadChunk(int chunkX, int chunkZ) {
+    return m_chunks.erase(ChunkPosition{chunkX, chunkZ}) != 0;
 }
 
 } // namespace cub3::engine
