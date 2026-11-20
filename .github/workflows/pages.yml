@@ -99,8 +99,17 @@ jobs:
           cp site/assets/platforms/*.png _site/assets/platforms/
           cp site/downloads/cub3-launcher-dev-amd64.deb _site/downloads/
           cp site/downloads/cub3-launcher-windows-x64.zip site/downloads/cub3-launcher-windows-x64.zip.sha256 _site/downloads/
-      - name: Comprobar paquete y recursos publicados
+      - name: Comprobar paquete, contenido y recursos publicados
+        env:
+          EXPECTED_SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
+          checked_out_sha=$(git rev-parse HEAD)
+          echo "Expected source commit: $EXPECTED_SOURCE_SHA"
+          echo "Checked-out source commit: $checked_out_sha"
+          test "$checked_out_sha" = "$EXPECTED_SOURCE_SHA"
+          grep -Fq 'id="cpp-edition"' _site/index.html
+          grep -Fq 'Aún no existe un juego C++ jugable ni una descarga.' _site/index.html
+          sha256sum _site/index.html
           test -s _site/downloads/cub3-launcher-dev-amd64.deb
           test -s _site/downloads/cub3-launcher-windows-x64.zip
           test -s _site/downloads/cub3-launcher-windows-x64.zip.sha256
