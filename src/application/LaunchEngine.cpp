@@ -1,5 +1,6 @@
 // CUB3 Launcher - Vanilla Minecraft installation and launch
 #include "LaunchEngine.h"
+#include "CppEditionPack.h"
 
 #include "core/Paths.h"
 #include "network/HttpClient.h"
@@ -387,6 +388,15 @@ void LaunchEngine::startGame() {
         .filePath(m_versionId + QStringLiteral("-natives"));
     if (!QDir().mkpath(gameDirectory) || !QDir().mkpath(nativesDirectory)) {
         fail(QStringLiteral("No se pudieron crear las carpetas de Minecraft."));
+        return;
+    }
+    const bool cppEditionTitleEnabled = m_versionId == QStringLiteral("26.3")
+        && m_settings->get(QStringLiteral("game/cpp_edition_title"), true).toBool();
+    QString titlePackError;
+    if (!CppEditionPack::configure(gameDirectory, cppEditionTitleEnabled,
+                                   &titlePackError)) {
+        fail(QStringLiteral("No se pudo preparar la personalización del título: %1")
+                 .arg(titlePackError));
         return;
     }
 

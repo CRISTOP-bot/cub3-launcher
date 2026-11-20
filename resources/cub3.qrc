@@ -11,5 +11,6 @@
         <file alias="icons/refresh.svg">../assets/icons/refresh.svg</file>
         <file alias="logos/cub3-primary.svg">../assets/logos/cub3-logo-01-island.svg</file>
         <file alias="images/cherry-grove.png">../assets/images/cherry-grove.png</file>
+        <file alias="packs/CUB3-Cpp-Edition.zip">CUB3CppEdition.zip</file>
     </qresource>
 </RCC>
