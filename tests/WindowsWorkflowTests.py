@@ -46,13 +46,14 @@ class WindowsWorkflowTests(unittest.TestCase):
         # the newer port calls api.github.com/contents and fails on runner 403.
         self.assertEqual(ref.group(1), '2d82b86eeb840b04d593405a968f8aa03609681d')
 
-    def test_all_pull_requests_target_dev_and_reuse_existing_fork_branch(self):
-        contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8')
-        self.assertIn('Todos los PR deben tener **`dev` como rama destino**', contributing)
-        self.assertIn('rama de trabajo existente en tu fork', contributing)
+    def test_write_access_and_fork_contribution_rules_are_distinct(self):
+        contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8').lower()
         normalized = ' '.join(contributing.split())
-        self.assertIn('no crees una rama adicional en el repositorio original', normalized)
-        self.assertNotIn('git switch -c', contributing)
+        self.assertIn('personas con permiso de escritura en el repositorio pueden hacer commits', normalized)
+        self.assertIn('quienes no tienen ese acceso deben contribuir desde un fork', normalized)
+        self.assertIn('los cambios se integran mediante pr dirigido a `dev`', normalized)
+        self.assertIn('no hagas push directo a `dev` ni a `main`', normalized)
+        self.assertIn('el pr debe pasar la revisión y las validaciones requeridas', normalized)
 
 
 if __name__ == '__main__':
