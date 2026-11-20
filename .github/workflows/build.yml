@@ -139,8 +139,10 @@ jobs:
           $keychain = Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter '*keychain*.dll' | Select-Object -First 1
           if (-not $keychain) { throw 'The QtKeychain runtime DLL was not found in the vcpkg installation' }
           Copy-Item $keychain.FullName $stage
-          $zlibRuntime = Get-Item -Path vcpkg_installed/x64-windows/bin/zlib1.dll -ErrorAction SilentlyContinue
-          if (-not $zlibRuntime) { throw 'The zlib runtime DLL was not found in the vcpkg installation' }
+          $zlibRuntime = @('z.dll', 'zlib1.dll') | ForEach-Object {
+            Get-Item -Path (Join-Path $PWD (Join-Path 'vcpkg_installed/x64-windows/bin' $_)) -ErrorAction SilentlyContinue
+          } | Select-Object -First 1
+          if (-not $zlibRuntime) { throw 'The zlib runtime DLL (z.dll or zlib1.dll) was not found in the vcpkg installation' }
           Copy-Item $zlibRuntime.FullName $stage
 
           $svgRuntime = Get-ChildItem -Path vcpkg_installed/x64-windows/bin -Filter '*Svg*.dll' | Select-Object -First 1
