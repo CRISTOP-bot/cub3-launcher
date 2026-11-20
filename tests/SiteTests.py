@@ -73,10 +73,12 @@ class SiteTests(unittest.TestCase):
 
     def test_changelog_and_legacy_anchors(self):
         page = self.pages['index.html']
-        for anchor in ('inicio', 'caracteristicas', 'mods', 'fixes', 'descargas', 'guia', 'identidad'):
+        for anchor in ('inicio', 'caracteristicas', 'cpp-edition', 'mods', 'fixes', 'descargas', 'guia', 'identidad'):
             self.assertIn(anchor, page.ids)
         content = (SITE / 'index.html').read_text(encoding='utf-8')
-        self.assertEqual(len(re.findall(r'class="fix-number"', content)), 16)
+        self.assertEqual(len(re.findall(r'class="fix-number"', content)), 17)
+        self.assertIn('aún no existe un juego c++ jugable ni una descarga', content.lower())
+        self.assertIn('sin otro launcher', content)
 
     def test_layout_regressions(self):
         css = (SITE / 'styles.css').read_text(encoding='utf-8')

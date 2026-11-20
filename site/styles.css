@@ -78,3 +78,16 @@ html{scroll-padding-top:100px}.site-header{position:sticky;top:0;z-index:50;back
 
 /* Contribution policy callout */
 .contribute-note{max-width:1240px;margin:0 auto;padding:27px 55px;display:flex;align-items:center;justify-content:space-between;gap:24px;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}.contribute-note>div{display:grid;gap:6px}.contribute-note .eyebrow{margin:0;font-size:8px}.contribute-note strong{font-size:13px}.contribute-note span{font-size:10px;color:var(--text-muted)}.contribute-note code{font:600 11px var(--mono);color:var(--clay)}.contribute-note>a{font-size:10px;font-weight:700;white-space:nowrap}.contribute-note>a b{margin-left:5px;color:var(--clay)}:root[data-theme="dark"] .contribute-note{border-color:var(--line)}@media(max-width:700px){.contribute-note{padding:23px 22px;display:grid;gap:15px}.contribute-note strong{font-size:12px}.contribute-note span{font-size:9px}}
+
+/* Native C++ edition status callout */
+.native-edition{display:grid;grid-template-columns:150px 1fr;gap:40px;padding-top:0;padding-bottom:104px}
+.native-edition-content{max-width:790px;padding:30px 34px;background:#e7e6da;border:1px solid #d6d7ca;position:relative}
+.native-edition h2{font:500 clamp(38px,4.2vw,59px)/.98 var(--display);letter-spacing:-1.7px;margin:0 0 17px}
+.native-edition h2 em{font-style:italic;color:#7e9773}
+.native-edition-content>p:not(.eyebrow){max-width:650px;color:#687269;font-size:12px;line-height:1.85;margin:0 0 16px}
+.native-status{display:flex;align-items:center;gap:9px;margin:20px 0 14px;color:#415c45;font:9px var(--mono);letter-spacing:.7px}
+.native-status .status-led{background:#a56b41;margin:0}
+.native-status span:last-child{color:#737a70;letter-spacing:0}
+.native-disclaimer{padding-top:12px;border-top:1px solid #d0d2c6;font-size:10px!important;margin-bottom:0!important}
+@media(max-width:1000px){.native-edition{grid-template-columns:105px 1fr;gap:24px}}
+@media(max-width:700px){.native-edition{grid-template-columns:1fr;gap:18px;padding-bottom:66px}.native-edition-content{padding:22px 18px}.native-edition h2{font-size:45px}.native-edition-content>p:not(.eyebrow){font-size:11px}.native-status{align-items:flex-start;flex-wrap:wrap;font-size:8px}.native-status span:last-child{flex-basis:100%;padding-left:15px}}

@@ -14,9 +14,9 @@
       document.documentElement.dataset.theme = theme;
     })();
   </script>
-  <meta name="description" content="CUB3 es un launcher de Minecraft independiente para preparar versiones, administrar tus ajustes y explorar mods de Modrinth.">
+  <meta name="description" content="CUB3 es un launcher independiente de Minecraft. La futura edición nativa C++ está en desarrollo y aún no tiene juego descargable.">
   <meta property="og:title" content="CUB3 — Prepara tu próxima partida">
-  <meta property="og:description" content="Versiones, perfiles, mods y ajustes de Minecraft reunidos en CUB3 Launcher.">
+  <meta property="og:description" content="Versiones, perfiles y mods de Minecraft en CUB3. La edición nativa C++ está en desarrollo, aún sin descarga.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://cristop-bot.github.io/cub3-launcher/">
   <meta property="og:image" content="https://cristop-bot.github.io/cub3-launcher/assets/cherry-grove.png">
@@ -28,14 +28,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261120-1">
+  <link rel="stylesheet" href="styles.css?v=20261120-2">
 </head>
 <body>
   <div class="announcement"><span class="announcement-dot"></span> LAUNCHER EXPERIMENTAL EN DESARROLLO <span class="announcement-sep">/</span> C++ · QT · MULTIPLATAFORMA</div>
   <header class="site-header">
     <a class="wordmark" href="#inicio" aria-label="CUB3, inicio"><img class="brand-logo" src="assets/logos/cub3-logo-01-island.svg" alt="" width="136" height="44"></a>
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="#launcher">El launcher</a><a href="#mods">Mods</a><a href="#seguridad">Enfoque</a><a href="#fixes">Cambios</a><a href="#descargas">Descargas</a>
+      <a href="#launcher">El launcher</a><a href="#cpp-edition">Edición C++</a><a href="#mods">Mods</a><a href="#seguridad">Enfoque</a><a href="#fixes">Cambios</a><a href="#descargas">Descargas</a>
     </nav>
     <div class="header-actions"><button class="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false"><span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Modo oscuro</span></button><a class="header-link" href="https://github.com/CRISTOP-bot/cub3-launcher">Ver en GitHub <span aria-hidden="true">↗</span></a></div>
   </header>
@@ -61,7 +61,7 @@
 
     <section class="intro section-shell" id="caracteristicas">
       <div class="section-index"><span>01</span><span>EL LAUNCHER</span></div>
-      <div class="intro-body" id="launcher"><p class="eyebrow">TODO EN SU SITIO</p><h2>Tu próxima partida<br>empieza <em>antes de jugar.</em></h2><p class="intro-text">CUB3 reúne la preparación de Minecraft en una sola app. Elige una versión, configura tu entorno y sigue lo que está pasando mientras el juego se alista.</p></div>
+      <div class="intro-body" id="launcher"><p class="eyebrow">TODO EN SU SITIO</p><h2>Tu próxima partida<br>empieza <em>antes de jugar.</em></h2><p class="intro-text">CUB3 reúne la preparación de Minecraft en una sola app. Elige una versión, configura tu entorno y sigue lo que está pasando mientras el juego se alista. También es el hogar del desarrollo de una futura edición nativa C++, aún no jugable ni disponible para descarga.</p></div>
       <figure class="app-shot"><div class="shot-top"><span><i></i><i></i><i></i></span><b>CUB3 / PREVIEW</b><span class="shot-label">CAPTURA DE UNA VERSIÓN ANTERIOR</span></div><img src="assets/launcher-preview.png" alt="Captura de una versión anterior de CUB3 Launcher" loading="lazy"><figcaption><span>INTERFAZ DEL LAUNCHER</span><span>EL DISEÑO SIGUE EVOLUCIONANDO ↗</span></figcaption></figure>
     </section>
 
@@ -70,6 +70,17 @@
       <article class="feature-block"><span class="feature-number">A / 02</span><div class="feature-icon">⌘</div><h3>Perfiles a tu medida</h3><p>Java, memoria, resolución y carpeta del juego: ajusta el entorno desde un solo lugar.</p><span class="feature-arrow">↗</span></article>
       <article class="feature-block"><span class="feature-number">A / 03</span><div class="feature-icon">◉</div><h3>Noticias del juego</h3><p>Consulta publicaciones e imágenes recientes del feed oficial de noticias de Minecraft.</p><span class="feature-arrow">↗</span></article>
       <article class="feature-block"><span class="feature-number">A / 04</span><div class="feature-icon">✳</div><h3>Descargas visibles</h3><p>Sigue el avance de las descargas en la app y administra tus instancias locales.</p><span class="feature-arrow">↗</span></article>
+    </section>
+
+    <section class="native-edition section-shell" id="cpp-edition" aria-labelledby="native-edition-title">
+      <div class="section-index"><span>↳</span><span>EDICIÓN NATIVA</span></div>
+      <div class="native-edition-content">
+        <p class="eyebrow">UN SOLO LAUNCHER</p>
+        <h2 id="native-edition-title">Una edición nativa,<br><em>desde CUB3.</em></h2>
+        <p>Estamos empezando una implementación independiente en C++. La meta es que, cuando sea jugable, puedas instalarla y abrirla desde los Perfiles de CUB3, sin otro launcher.</p>
+        <div class="native-status"><span class="status-led" aria-hidden="true"></span><strong>EN DESARROLLO</strong><span>Primer paso: parser NBT con pruebas</span></div>
+        <p class="native-disclaimer">Aún no existe un juego C++ jugable ni una descarga. Esto no convierte ni modifica el ejecutable oficial de Minecraft; el avance se publicará por etapas y con pruebas.</p>
+      </div>
     </section>
 
     <section class="mods-section" id="mods">
@@ -95,7 +106,7 @@
     <section class="change-history section-shell" id="fixes">
       <div class="section-index"><span>↳</span><span>REGISTRO DE CAMBIOS</span></div>
       <div class="change-history-content"><p class="eyebrow">EL CAMINO HASTA AQUÍ</p><h2>Avances, <em>sin esconderlos.</em></h2><p>Un historial de los cambios del launcher y sus límites actuales. Las pruebas automáticas no sustituyen la verificación manual de cada función.</p>
-      <details class="change-details"><summary>Consultar los 16 cambios documentados <span>＋</span></summary>
+      <details class="change-details"><summary>Consultar los 17 cambios documentados <span>＋</span></summary>
       <div class="fixes-list">
         <article class="fix-row">
           <span class="fix-number">01</span>
@@ -160,6 +171,10 @@
         <article class="fix-row">
           <span class="fix-number">16</span>
           <div><h3>Explorador de mods con Modrinth</h3><p><b>Ahora</b> · la búsqueda presenta fichas con descripción, autor, categorías, descargas y seguidores; puedes filtrar por Minecraft y cargador, ordenar resultados de Modrinth y abrir la página del proyecto antes de confirmar la descarga. CurseForge sigue como búsqueda externa.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">17</span>
+          <div><h3>Edición nativa C++ integrada al proyecto CUB3</h3><p><b>Ahora</b> · comenzó la base técnica con un parser NBT y pruebas automatizadas. El objetivo es que CUB3 administre la instalación y el arranque de una futura edición nativa desde Perfiles. Todavía no hay juego jugable ni descarga; no se modifica el cliente oficial.</p></div>
         </article>
       </div>
       </details><p class="change-note">Linux: build y pruebas automáticas. La restauración con cuentas y llavero reales y la ejecución en Windows aún necesitan pruebas manuales.</p></div>
