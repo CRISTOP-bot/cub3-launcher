@@ -6,7 +6,7 @@ La implementación es clean-room: reproduce por etapas el comportamiento observa
 
 ## Prototipos y límites
 
-`src/engine/World.*` es un prototipo pequeño con bloques básicos, chunks 16×128×16, una superficie determinista de prueba y acceso a bloques. No es un mundo Minecraft, no genera su terreno, no es jugable y no ofrece paridad.
+`src/engine/World.*` es un prototipo pequeño con bloques básicos, chunks 16×128×16, una superficie determinista de prueba y acceso a bloques. `World` crea y mantiene chunks en memoria al acceder a coordenadas globales, permite consultarlos y descargarlos explícitamente; las ediciones de bloques actualizan la altura de superficie. La descarga elimina las modificaciones porque todavía no hay guardado persistente. No es un mundo Minecraft, no genera su terreno, no es jugable y no ofrece paridad.
 
 El parser NBT de `src/engine/Nbt.*` es la primera pieza de lectura de formato del juego: decodifica NBT big-endian con límites configurables para tamaño, elementos y profundidad. Sus fixtures son creados por las pruebas, no tomados de mundos de usuario. Tampoco convierte por sí solo un mundo en algo jugable.
 
