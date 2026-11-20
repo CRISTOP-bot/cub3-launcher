@@ -32,6 +32,9 @@ jobs:
           python3 tests/WindowsWorkflowTests.py
           python3 tests/AssetTests.py
           python3 tests/LibraryPageTests.py
+          python3 tests/SiteTests.py
+          python3 tests/WindowsBundleTests.py
+          python3 tests/SiteTests.py
       - name: Check patch whitespace
         if: github.event_name == 'push'
         run: git diff --check HEAD^ HEAD

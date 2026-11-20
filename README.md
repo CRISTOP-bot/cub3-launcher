@@ -14,9 +14,10 @@ Launcher de Minecraft escrito en C++20 y Qt 6 para Linux y Windows x64. CUB3 per
 
 - [Paquete Debian/Ubuntu x86_64](https://github.com/CRISTOP-bot/cub3-launcher/releases/download/v0.1.0-pre.1/cub3-launcher-0.1.0-x86_64.deb)
 - [Notas y archivos de la versión](https://github.com/CRISTOP-bot/cub3-launcher/releases/tag/v0.1.0-pre.1)
-- [Build portable de Windows x64 en GitHub Actions](https://github.com/CRISTOP-bot/cub3-launcher/actions/workflows/build.yml) (artifact de desarrollo, retención 30 días)
+- [ZIP portable experimental para Windows x64](https://cristop-bot.github.io/cub3-launcher/#descargas) (la web se actualiza tras superar el CI Linux/Windows y ofrece el checksum SHA-256)
+- [Historial de compilaciones Windows en GitHub Actions](https://github.com/CRISTOP-bot/cub3-launcher/actions/workflows/build.yml)
 
-Para obtener el ZIP de Windows, abre el workflow, elige una ejecución exitosa y descarga el artefacto **cub3-launcher-windows-x64**. Comprueba el `.sha256` incluido antes de usarlo. No hay instalador ni Release estable de Windows todavía.
+El ZIP de Windows es un build de desarrollo, no un instalador ni un release estable. Verifica su checksum SHA-256 antes de usarlo.
 - [Sitio del proyecto](https://cristop-bot.github.io/cub3-launcher/)
 
 Instala el paquete desde una terminal:
