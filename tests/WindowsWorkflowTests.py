@@ -46,6 +46,17 @@ class WindowsWorkflowTests(unittest.TestCase):
         # the newer port calls api.github.com/contents and fails on runner 403.
         self.assertEqual(ref.group(1), '2d82b86eeb840b04d593405a968f8aa03609681d')
 
+    def test_zlib_is_installed_and_staged_for_the_native_region_reader(self):
+        import json
+
+        workflow = (ROOT / '.github/workflows/build.yml').read_text(encoding='utf-8')
+        manifest = json.loads((ROOT / 'vcpkg.json').read_text(encoding='utf-8'))
+        self.assertIn('zlib', manifest['dependencies'])
+        self.assertIn('zlib1.dll', workflow)
+        self.assertIn('zlib1g-dev', workflow.split('Install build dependencies', 1)[1])
+        self.assertIn('ZLIB::ZLIB', (ROOT / 'CMakeLists.txt').read_text(encoding='utf-8'))
+        self.assertIn('ZLIB::ZLIB', (ROOT / 'tests/CMakeLists.txt').read_text(encoding='utf-8'))
+
     def test_write_access_and_fork_contribution_rules_are_distinct(self):
         contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8').lower()
         normalized = ' '.join(contributing.split())

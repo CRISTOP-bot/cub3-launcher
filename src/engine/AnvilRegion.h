@@ -13,6 +13,7 @@ namespace cub3::engine::anvil {
 inline constexpr std::size_t kSectorBytes = 4096;
 inline constexpr std::size_t kHeaderBytes = 2 * kSectorBytes;
 inline constexpr int kRegionSide = 32;
+inline constexpr std::size_t kDefaultMaxDecompressedBytes = 64U * 1024U * 1024U;
 
 struct Chunk final {
     int localX{0};
@@ -21,8 +22,8 @@ struct Chunk final {
     // Compression id is preserved as stored (the high bit is the external-file flag).
     std::uint8_t compression{0};
     bool external{false};
-    // Payload bytes excluding the four-byte length and compression marker.
-    // For external chunks, the payload is stored in the corresponding .mcc file.
+    // Compressed payload bytes excluding the four-byte length and marker.
+    // For external chunks, bytes are stored in the corresponding .mcc file.
     std::vector<std::uint8_t> payload;
 };
 
@@ -32,7 +33,7 @@ public:
 };
 
 /// Parse and validate an in-memory .mca region container. This reads its header
-/// and chunk records but deliberately does not decompress payloads or parse NBT.
+/// and chunk records but does not parse NBT or load a world.
 class Region final {
 public:
     [[nodiscard]] static Region parse(const std::vector<std::uint8_t>& bytes);
@@ -41,5 +42,11 @@ public:
 private:
     std::array<std::optional<Chunk>, kRegionSide * kRegionSide> m_chunks{};
 };
+
+/// Decode chunk data using region compression types 1 (gzip), 2 (zlib), or
+/// 3 (uncompressed). LZ4 (4), external-file reads, and NBT parsing are not
+/// implemented. Throws RegionError on unsupported, corrupt, or oversized data.
+[[nodiscard]] std::vector<std::uint8_t> decompressPayload(
+    const Chunk& chunk, std::size_t maxOutputBytes = kDefaultMaxDecompressedBytes);
 
 } // namespace cub3::engine::anvil

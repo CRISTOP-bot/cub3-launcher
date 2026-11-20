@@ -23,6 +23,7 @@ foreach(TEST_SRC ${CUB3_TEST_SOURCES})
         Qt6::Test
         Qt6::Sql
         Qt6::Network
+        ZLIB::ZLIB
     )
     if(TEST_NAME STREQUAL "DiscordPresenceTests")
         target_sources(${TEST_NAME} PRIVATE ../src/discord/DiscordPresence.cpp)
