@@ -5,6 +5,15 @@
 #include "core/Paths.h"
 #include "storage/Settings.h"
 #include "network/DownloadEngine.h"
+#include "gitlab/GitLabManager.h"
+
+#include <QDesktopServices>
+#include <QComboBox>
+#include <QTextBrowser>
+#include <QMessageBox>
+#include <QSignalBlocker>
+#include <QUrl>
+#include <QStringList>
 
 #include <QVBoxLayout>
 #include <QHBoxLayout>
@@ -30,6 +39,108 @@ SettingsPage::SettingsPage(cub3::application::Cub3App* app, QWidget* parent)
     , m_app(app)
 {
     setupUi();
+    if (!m_app)
+        return;
+
+    auto& gitLab = m_app->gitLabManager();
+    connect(&gitLab, &cub3::gitlab::GitLabManager::connectionChanged,
+            this, [this](bool connected, const QString& username) {
+        m_gitLabStatus->setText(connected
+            ? QStringLiteral("Conectado como %1").arg(username)
+            : QStringLiteral("No conectado"));
+        m_gitLabConnectButton->setText(connected
+            ? QStringLiteral("Desconectar") : QStringLiteral("Conectar GitLab"));
+        m_gitLabProjects->setEnabled(connected);
+        m_gitLabRefreshButton->setEnabled(connected);
+        if (!connected) {
+            const QSignalBlocker blocker(m_gitLabProjects);
+            m_gitLabProjects->clear();
+            m_gitLabDetails->clear();
+        }
+    });
+    connect(&gitLab, &cub3::gitlab::GitLabManager::authorizationCodeReady,
+            this, [this](const QString& url, const QString& code) {
+        const bool opened = QDesktopServices::openUrl(QUrl(url));
+        QMessageBox dialog(this);
+        dialog.setWindowTitle(QStringLiteral("Autoriza GitLab"));
+        dialog.setIcon(QMessageBox::Information);
+        dialog.setText(QStringLiteral("%1\n\nCódigo de autorización: %2\n\nConfirma el acceso en GitLab. No compartas este código.")
+            .arg(opened ? QStringLiteral("Se abrió GitLab en tu navegador.")
+                        : QStringLiteral("Abre esta dirección en tu navegador: %1").arg(url), code));
+        dialog.setTextFormat(Qt::PlainText);
+        dialog.exec();
+    });
+    connect(&gitLab, &cub3::gitlab::GitLabManager::errorOccurred,
+            this, [this](const QString& message) {
+        m_gitLabStatus->setText(message);
+    });
+    connect(&gitLab, &cub3::gitlab::GitLabManager::projectsReady,
+            this, [this](const QJsonArray& projects) {
+        const QSignalBlocker blocker(m_gitLabProjects);
+        m_gitLabProjects->clear();
+        for (const QJsonValue& item : projects) {
+            const QJsonObject project = item.toObject();
+            const QString name = project.value(QStringLiteral("path_with_namespace")).toString();
+            const QString id = project.value(QStringLiteral("id")).toVariant().toString();
+            if (!name.isEmpty() && !id.isEmpty()) {
+                m_gitLabProjects->addItem(name, id);
+                m_gitLabProjects->setItemData(m_gitLabProjects->count() - 1,
+                    project.value(QStringLiteral("default_branch")).toString(), Qt::UserRole + 1);
+            }
+        }
+        m_gitLabStatus->setText(QStringLiteral("Proyectos visibles: %1 (máximo 100)").arg(m_gitLabProjects->count()));
+    });
+    connect(&gitLab, &cub3::gitlab::GitLabManager::projectDataReady,
+            this, [this](const QJsonArray& branches, const QJsonArray& commits,
+                         const QJsonArray& releases, const QJsonArray& tags) {
+        QStringList lines;
+        lines << QStringLiteral("RAMAS");
+        for (const QJsonValue& item : branches) {
+            const QJsonObject branch = item.toObject();
+            lines << QStringLiteral("• %1%2").arg(branch.value(QStringLiteral("name")).toString(),
+                branch.value(QStringLiteral("default")).toBool() ? QStringLiteral(" (predeterminada)") : QString{});
+        }
+        lines << QString{} << QStringLiteral("COMMITS RECIENTES");
+        for (const QJsonValue& item : commits) {
+            const QJsonObject commit = item.toObject();
+            lines << QStringLiteral("• %1 — %2").arg(commit.value(QStringLiteral("short_id")).toString(),
+                commit.value(QStringLiteral("title")).toString());
+        }
+        lines << QString{} << QStringLiteral("RELEASES");
+        for (const QJsonValue& item : releases) {
+            const QJsonObject release = item.toObject();
+            lines << QStringLiteral("• %1 — %2").arg(release.value(QStringLiteral("tag_name")).toString(),
+                release.value(QStringLiteral("name")).toString());
+        }
+        lines << QString{} << QStringLiteral("ETIQUETAS RECIENTES");
+        for (const QJsonValue& item : tags) {
+            const QJsonObject tag = item.toObject();
+            lines << QStringLiteral("• %1 — %2").arg(tag.value(QStringLiteral("name")).toString(),
+                tag.value(QStringLiteral("message")).toString());
+        }
+        if (branches.isEmpty() && commits.isEmpty() && releases.isEmpty() && tags.isEmpty())
+            lines << QStringLiteral("No se encontraron datos para este proyecto.");
+        m_gitLabDetails->setPlainText(lines.join(QLatin1Char('\n')));
+        m_gitLabStatus->setText(QStringLiteral("Datos actualizados."));
+    });
+
+    const QString savedInstance = m_app->settings().get(
+        QStringLiteral("gitlab/instance"), QStringLiteral("https://gitlab.com")).toString();
+    m_gitLabInstance->setText(gitLab.instanceUrl().isEmpty()
+        ? savedInstance : gitLab.instanceUrl());
+    m_gitLabClientId->setText(m_app->settings().get(QStringLiteral("gitlab/client_id")).toString());
+    m_gitLabStatus->setText(gitLab.isConnected()
+        ? QStringLiteral("Conectado como %1").arg(gitLab.username()) : QStringLiteral("No conectado"));
+    m_gitLabProjects->setEnabled(gitLab.isConnected());
+    m_gitLabRefreshButton->setEnabled(gitLab.isConnected());
+    m_gitLabConnectButton->setText(gitLab.isConnected()
+        ? QStringLiteral("Desconectar") : QStringLiteral("Conectar GitLab"));
+    connect(m_gitLabConnectButton, &QPushButton::clicked,
+            this, &SettingsPage::onGitLabConnect);
+    connect(m_gitLabProjects, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, &SettingsPage::onGitLabProjectChanged);
+    connect(m_gitLabRefreshButton, &QPushButton::clicked,
+            this, &SettingsPage::onGitLabRefreshProjects);
 }
 
 void SettingsPage::setupUi() {
@@ -192,6 +303,48 @@ void SettingsPage::setupUi() {
 
     appGroup->setObjectName(QStringLiteral("SettingsGroup"));
     bodyLayout->addWidget(appGroup);
+
+    auto* gitLabGroup = new QGroupBox(QStringLiteral("GitLab · proyectos y releases"), body);
+    gitLabGroup->setObjectName(QStringLiteral("SettingsGroup"));
+    auto* gitLabLayout = new QVBoxLayout(gitLabGroup);
+    auto* gitLabNotice = new QLabel(
+        QStringLiteral("Conexión OAuth de solo lectura. Registra una aplicación OAuth en GitLab con autorización de dispositivo y los permisos read_api y read_user. No pegues aquí tokens ni secretos."),
+        gitLabGroup);
+    gitLabNotice->setWordWrap(true);
+    gitLabNotice->setObjectName(QStringLiteral("Secondary"));
+    gitLabLayout->addWidget(gitLabNotice);
+    auto* gitLabForm = new QFormLayout();
+    m_gitLabInstance = new QLineEdit(gitLabGroup);
+    m_gitLabInstance->setPlaceholderText(QStringLiteral("https://gitlab.com"));
+    m_gitLabInstance->setAccessibleName(QStringLiteral("URL HTTPS de GitLab"));
+    gitLabForm->addRow(QStringLiteral("Instancia:"), m_gitLabInstance);
+    m_gitLabClientId = new QLineEdit(gitLabGroup);
+    m_gitLabClientId->setPlaceholderText(QStringLiteral("ID de aplicación OAuth"));
+    m_gitLabClientId->setAccessibleName(QStringLiteral("ID de aplicación OAuth de GitLab"));
+    gitLabForm->addRow(QStringLiteral("ID OAuth:"), m_gitLabClientId);
+    gitLabLayout->addLayout(gitLabForm);
+    auto* gitLabActions = new QHBoxLayout();
+    m_gitLabConnectButton = new QPushButton(QStringLiteral("Conectar GitLab"), gitLabGroup);
+    m_gitLabConnectButton->setObjectName(QStringLiteral("Primary"));
+    gitLabActions->addWidget(m_gitLabConnectButton);
+    m_gitLabRefreshButton = new QPushButton(QStringLiteral("Actualizar proyectos"), gitLabGroup);
+    m_gitLabRefreshButton->setEnabled(false);
+    gitLabActions->addWidget(m_gitLabRefreshButton);
+    m_gitLabStatus = new QLabel(QStringLiteral("No conectado"), gitLabGroup);
+    m_gitLabStatus->setTextFormat(Qt::PlainText);
+    m_gitLabStatus->setWordWrap(true);
+    gitLabActions->addWidget(m_gitLabStatus, 1);
+    gitLabLayout->addLayout(gitLabActions);
+    m_gitLabProjects = new QComboBox(gitLabGroup);
+    m_gitLabProjects->setAccessibleName(QStringLiteral("Proyecto GitLab"));
+    m_gitLabProjects->setEnabled(false);
+    gitLabLayout->addWidget(m_gitLabProjects);
+    m_gitLabDetails = new QTextBrowser(gitLabGroup);
+    m_gitLabDetails->setOpenExternalLinks(false);
+    m_gitLabDetails->setMaximumHeight(220);
+    m_gitLabDetails->setPlaceholderText(QStringLiteral("Selecciona un proyecto para consultar ramas, commits recientes, releases y etiquetas."));
+    gitLabLayout->addWidget(m_gitLabDetails);
+    bodyLayout->addWidget(gitLabGroup);
     bodyLayout->addStretch(1);
     scroll->setWidget(body);
     layout->addWidget(scroll, 1);
@@ -269,6 +422,54 @@ void SettingsPage::onDirBrowse() {
         m_instancesDir->text());
     if (!dir.isEmpty())
         m_instancesDir->setText(dir);
+}
+
+void SettingsPage::onGitLabConnect() {
+    if (!m_app)
+        return;
+    auto& manager = m_app->gitLabManager();
+    if (manager.isConnected()) {
+        const auto answer = QMessageBox::question(
+            this, QStringLiteral("Desconectar GitLab"),
+            QStringLiteral("¿Quieres quitar de este dispositivo la sesión GitLab guardada? Para revocar el acceso, quita también la aplicación desde GitLab → Preferencias → Aplicaciones autorizadas."),
+            QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if (answer == QMessageBox::Yes)
+            manager.disconnectAccount();
+        return;
+    }
+    const QString instance = m_gitLabInstance->text().trimmed();
+    const QString clientId = m_gitLabClientId->text().trimmed();
+    if (!cub3::gitlab::GitLabManager::isValidInstanceUrl(QUrl(instance))) {
+        m_gitLabStatus->setText(QStringLiteral("La instancia debe ser una URL HTTPS válida, por ejemplo https://gitlab.com."));
+        return;
+    }
+    if (clientId.isEmpty()) {
+        m_gitLabStatus->setText(QStringLiteral("Falta el ID público de la aplicación OAuth registrada en GitLab."));
+        return;
+    }
+    m_app->settings().set(QStringLiteral("gitlab/instance"), instance);
+    m_app->settings().set(QStringLiteral("gitlab/client_id"), clientId);
+    m_gitLabStatus->setText(QStringLiteral("Solicitando autorización a GitLab…"));
+    manager.authorize(instance, clientId);
+}
+
+void SettingsPage::onGitLabRefreshProjects() {
+    if (!m_app)
+        return;
+    m_gitLabStatus->setText(QStringLiteral("Consultando proyectos de GitLab…"));
+    m_app->gitLabManager().listProjects();
+}
+
+void SettingsPage::onGitLabProjectChanged(int index) {
+    if (!m_app || index < 0)
+        return;
+    const QString id = m_gitLabProjects->itemData(index).toString();
+    const QString branch = m_gitLabProjects->itemData(index, Qt::UserRole + 1).toString();
+    if (id.isEmpty())
+        return;
+    m_gitLabStatus->setText(QStringLiteral("Cargando datos del proyecto…"));
+    m_gitLabDetails->clear();
+    m_app->gitLabManager().loadProject(id, branch);
 }
 
 void SettingsPage::onSave() {

@@ -9,6 +9,9 @@ class QSlider;
 class QLabel;
 class QCheckBox;
 class QLineEdit;
+class QComboBox;
+class QTextBrowser;
+class QPushButton;
 
 namespace cub3::application { class Cub3App; }
 
@@ -31,6 +34,9 @@ private slots:
     void onJavaBrowse();
     void onDirBrowse();
     void onSave();
+    void onGitLabConnect();
+    void onGitLabRefreshProjects();
+    void onGitLabProjectChanged(int index);
 
 private:
     void setupUi();
@@ -57,6 +63,14 @@ private:
     // Resolution
     QSpinBox* m_resolutionW{nullptr};
     QSpinBox* m_resolutionH{nullptr};
+
+    QLineEdit* m_gitLabInstance{nullptr};
+    QLineEdit* m_gitLabClientId{nullptr};
+    QLabel* m_gitLabStatus{nullptr};
+    QComboBox* m_gitLabProjects{nullptr};
+    QTextBrowser* m_gitLabDetails{nullptr};
+    QPushButton* m_gitLabConnectButton{nullptr};
+    QPushButton* m_gitLabRefreshButton{nullptr};
 };
 
 } // namespace cub3::ui::pages

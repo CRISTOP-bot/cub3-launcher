@@ -13,6 +13,7 @@
 #include "network/DownloadEngine.h"
 #include "versions/VersionManager.h"
 #include "auth/AuthManager.h"
+#include "gitlab/GitLabManager.h"
 
 #include <QTimer>
 #include <QStandardPaths>
@@ -156,6 +157,14 @@ auth::AuthManager& Cub3App::authManager() {
     if (!m_auth)
         m_auth = new auth::AuthManager(m_http, this);
     return *m_auth;
+}
+
+gitlab::GitLabManager& Cub3App::gitLabManager() {
+    if (!m_http)
+        initNetwork();
+    if (!m_gitLab)
+        m_gitLab = new gitlab::GitLabManager(m_http, this);
+    return *m_gitLab;
 }
 
 LaunchEngine& Cub3App::launchEngine() {
