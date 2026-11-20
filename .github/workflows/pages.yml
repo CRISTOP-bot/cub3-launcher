@@ -103,7 +103,7 @@ jobs:
         env:
           EXPECTED_SOURCE_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
-          checked_out_sha=$(git rev-parse HEAD)
+          checked_out_sha=$(git -c safe.directory="$GITHUB_WORKSPACE" -C "$GITHUB_WORKSPACE" rev-parse HEAD)
           echo "Expected source commit: $EXPECTED_SOURCE_SHA"
           echo "Checked-out source commit: $checked_out_sha"
           test "$checked_out_sha" = "$EXPECTED_SOURCE_SHA"
