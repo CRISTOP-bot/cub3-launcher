@@ -27,6 +27,14 @@ private slots:
                                             InstallationSort::RecentlyAdded).size(), 3);
     }
 
+    void comparesNumericRunsByValueAndKeepsLeadingZeroesDeterministic() {
+        using cub3::ui::pages::naturalCompare;
+        QVERIFY(naturalCompare(QStringLiteral("World 2"), QStringLiteral("World 10")) < 0);
+        QVERIFY(naturalCompare(QStringLiteral("1.10"), QStringLiteral("1.9")) > 0);
+        QVERIFY(naturalCompare(QStringLiteral("Pack 2"), QStringLiteral("Pack 02")) < 0);
+        QCOMPARE(naturalCompare(QStringLiteral("SAME"), QStringLiteral("same")), 0);
+    }
+
     void sortsByNameNaturallyAndDeterministically() {
         const QList<InstallationRecord> installations{
             {1, QStringLiteral("Instance 10"), QStringLiteral("1.20"), {}, {}, 2},

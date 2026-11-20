@@ -29,7 +29,9 @@ class LibraryPageTests(unittest.TestCase):
 
     def test_search_and_sort_logic_is_case_insensitive_and_natural(self):
         self.assertIn('Qt::CaseInsensitive', self.model)
-        self.assertIn('collator.setNumericMode(true)', self.model)
+        self.assertIn('naturalCompare', self.model)
+        self.assertIn('a.isDigit() && b.isDigit()', self.model)
+        self.assertNotIn('QCollator', self.model)
         self.assertIn('std::stable_sort', self.model)
         self.assertIn('installation.version.contains', self.model)
         self.assertIn('installation.loader.contains', self.model)
