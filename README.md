@@ -129,7 +129,7 @@ El paquete se genera en `build/`.
 
 ## Contribuir
 
-**Todas las contribuciones se envían mediante pull request (PR) a `dev`. No se aceptan pushes ni commits directos a las ramas del proyecto.** Haz fork, trabaja en una rama propia basada en `upstream/dev`, súbela a tu fork y abre la PR con destino `dev`. Esto aplica al código, pruebas, documentación, recursos y sitio. `main` se reserva para promociones estables mediante PR.
+**Quienes tienen permiso de escritura pueden hacer commits en ramas del repositorio original; quienes no tienen ese acceso contribuyen desde un fork y envían un pull request (PR).** Los cambios se integran mediante PR a `dev`; no hagas push directo a `dev` ni a `main`. Los PR deben pasar revisión y validaciones antes de integrarse. `main` se reserva para promociones estables mediante PR.
 
 Lee [`CONTRIBUTING.md`](CONTRIBUTING.md) para conocer el flujo completo, las comprobaciones y cómo reportar errores.
 
