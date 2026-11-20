@@ -1,7 +1,7 @@
 {
   "name": "cub3-launcher",
   "version-string": "0.1.0",
-  "builtin-baseline": "e1ff419d28c7f0a94abaf0a848fe0aeeb69b2de3",
+  "builtin-baseline": "2d82b86eeb840b04d593405a968f8aa03609681d",
   "dependencies": [
     {
       "name": "qtbase",
