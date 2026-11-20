@@ -167,6 +167,10 @@
           <span class="fix-number">15</span>
           <div><h3>Port Windows x64 sin quitar Linux</h3><p><b>Antes</b> · CUB3 no se compilaba ni empaquetaba en Windows y las bibliotecas nativas requerían `unzip`.</p><p><b>Ahora</b> · CI configura Windows con Qt 6/QtKeychain, compila y ejecuta CTest; prepara un ZIP portable con el `.exe`, DLL, plugins de Qt y la carpeta `assets`. Windows usa `tar.exe` del sistema para las bibliotecas ZIP; Linux conserva su build y `.deb` con `unzip`.</p></div>
         </article>
+        <article class="fix-row">
+          <span class="fix-number">16</span>
+          <div><h3>Explorador de mods con Modrinth</h3><p><b>Ahora</b> · la búsqueda presenta fichas con descripción, autor, categorías, descargas y seguidores; puedes filtrar por Minecraft y cargador, ordenar resultados de Modrinth y abrir la página del proyecto antes de confirmar la descarga. CurseForge sigue como búsqueda externa.</p></div>
+        </article>
       </div>
       <p class="fixes-note">Build de desarrollo · Release, CTest y comprobación de formato pasaron en CI. La restauración de sesión con cuentas y llavero reales aún requiere una prueba manual. No se publica una cifra de rendimiento: depende del equipo, la red y el almacenamiento.</p>
     </section>

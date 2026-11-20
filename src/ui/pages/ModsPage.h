@@ -9,6 +9,7 @@ class QLineEdit;
 class QListWidget;
 class QLabel;
 class QPushButton;
+class QFrame;
 namespace cub3::application { class Cub3App; }
 
 namespace cub3::ui::pages {
@@ -30,6 +31,8 @@ private:
     QLineEdit* m_query{};
     QLineEdit* m_gameVersion{};
     QComboBox* m_loader{};
+    QComboBox* m_sort{};
+    QFrame* m_modrinthBanner{};
     QListWidget* m_results{};
     QLabel* m_status{};
     QPushButton* m_searchButton{};
@@ -39,6 +42,7 @@ private:
     QString m_resultsForVersion;
     QString m_resultsForLoader;
     QString m_resultsForQuery;
+    QString m_resultsForSort;
     QMetaObject::Connection m_downloadConnection;
     QMetaObject::Connection m_downloadProgressConnection;
     bool m_downloadInProgress{false};

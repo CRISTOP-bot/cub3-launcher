@@ -12,21 +12,27 @@
 #include <QDesktopServices>
 #include <QDir>
 #include <QFileInfo>
+#include <QFrame>
 #include <QHBoxLayout>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QLabel>
+#include <QListWidgetItem>
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMessageBox>
 #include <QPushButton>
+#include <QStyle>
+#include <QStringList>
 #include <QUrl>
 #include <QUrlQuery>
 #include <QJsonParseError>
 #include <QPointer>
 #include <QUuid>
 #include <QVBoxLayout>
+#include <QVariant>
+#include <QWidget>
 #include <QLocale>
 #include <QAbstractItemView>
 #include <memory>
@@ -40,65 +46,127 @@ ModsPage::ModsPage(application::Cub3App* app, QWidget* parent)
                                theme::sizes::kSpacingLarge, theme::sizes::kSpacingLarge);
     layout->setSpacing(theme::sizes::kSpacingMedium);
 
+    auto* heading = new QHBoxLayout();
     auto* title = new QLabel(QStringLiteral("Mods"), this);
     title->setObjectName(QStringLiteral("PageTitle"));
-    layout->addWidget(title);
+    heading->addWidget(title);
+    heading->addStretch(1);
+    auto* providerTag = new QLabel(QStringLiteral("MODRINTH  /  MOD DISCOVERY"), this);
+    providerTag->setObjectName(QStringLiteral("ModrinthProviderTag"));
+    heading->addWidget(providerTag);
+    layout->addLayout(heading);
+
     auto* subtitle = new QLabel(
-        QStringLiteral("Busca en Modrinth o CurseForge y filtra por versión y cargador. "
-                       "Los cargadores aún no se instalan desde CUB3."), this);
+        QStringLiteral("Encuentra mods compatibles para tu versión de Minecraft y abre cada ficha antes de instalar."), this);
     subtitle->setObjectName(QStringLiteral("PageSubtitle"));
+    subtitle->setWordWrap(true);
     layout->addWidget(subtitle);
 
-    auto* filters = new QHBoxLayout();
-    m_query = new QLineEdit(this);
-    m_query->setPlaceholderText(QStringLiteral("Buscar mods…"));
-    m_query->setAccessibleName(QStringLiteral("Buscar mods por nombre"));
+    m_modrinthBanner = new QFrame(this);
+    m_modrinthBanner->setObjectName(QStringLiteral("ModrinthBanner"));
+    auto* bannerLayout = new QHBoxLayout(m_modrinthBanner);
+    bannerLayout->setContentsMargins(18, 14, 18, 14);
+    auto* brand = new QLabel(QStringLiteral("M"), m_modrinthBanner);
+    brand->setObjectName(QStringLiteral("ModrinthMark"));
+    brand->setAlignment(Qt::AlignCenter);
+    brand->setFixedSize(38, 38);
+    bannerLayout->addWidget(brand);
+    auto* brandCopy = new QVBoxLayout();
+    auto* brandTitle = new QLabel(QStringLiteral("Explora Modrinth"), m_modrinthBanner);
+    brandTitle->setObjectName(QStringLiteral("ModrinthTitle"));
+    auto* brandDescription = new QLabel(
+        QStringLiteral("Catálogo y versiones desde Modrinth. CurseForge abre su búsqueda en el navegador."), m_modrinthBanner);
+    brandDescription->setObjectName(QStringLiteral("ModrinthDescription"));
+    brandDescription->setWordWrap(true);
+    brandCopy->addWidget(brandTitle);
+    brandCopy->addWidget(brandDescription);
+    bannerLayout->addLayout(brandCopy, 1);
+    auto* browseButton = new QPushButton(QStringLiteral("Abrir Modrinth ↗"), m_modrinthBanner);
+    browseButton->setObjectName(QStringLiteral("SecondaryButton"));
+    browseButton->setAccessibleName(QStringLiteral("Abrir el catálogo de mods de Modrinth en el navegador"));
+    connect(browseButton, &QPushButton::clicked, this, [] {
+        QDesktopServices::openUrl(QUrl(QStringLiteral("https://modrinth.com/mods")));
+    });
+    bannerLayout->addWidget(browseButton);
+    layout->addWidget(m_modrinthBanner);
+
+    auto* filtersFrame = new QFrame(this);
+    filtersFrame->setObjectName(QStringLiteral("ModsFilterCard"));
+    auto* filtersLayout = new QVBoxLayout(filtersFrame);
+    filtersLayout->setContentsMargins(16, 14, 16, 14);
+    filtersLayout->setSpacing(10);
+    auto* filtersLabel = new QLabel(QStringLiteral("AFINA TU BÚSQUEDA"), filtersFrame);
+    filtersLabel->setObjectName(QStringLiteral("ModsSectionEyebrow"));
+    filtersLayout->addWidget(filtersLabel);
+
+    auto* searchRow = new QHBoxLayout();
+    searchRow->setSpacing(10);
+    m_query = new QLineEdit(filtersFrame);
+    m_query->setObjectName(QStringLiteral("ModsSearchField"));
+    m_query->setPlaceholderText(QStringLiteral("Nombre del mod o palabra clave"));
+    m_query->setAccessibleName(QStringLiteral("Buscar mods en Modrinth por nombre o palabra clave"));
     m_query->setClearButtonEnabled(true);
-    filters->addWidget(m_query, 1);
-    m_gameVersion = new QLineEdit(this);
+    searchRow->addWidget(m_query, 1);
+    m_searchButton = new QPushButton(QStringLiteral("Buscar mods"), filtersFrame);
+    m_searchButton->setObjectName(QStringLiteral("Primary"));
+    m_searchButton->setAccessibleName(QStringLiteral("Buscar mods compatibles en Modrinth"));
+    searchRow->addWidget(m_searchButton);
+    filtersLayout->addLayout(searchRow);
+
+    auto* filterRow = new QHBoxLayout();
+    filterRow->setSpacing(10);
+    auto* versionLabel = new QLabel(QStringLiteral("Minecraft"), filtersFrame);
+    versionLabel->setObjectName(QStringLiteral("Secondary"));
+    filterRow->addWidget(versionLabel);
+    m_gameVersion = new QLineEdit(filtersFrame);
+    m_gameVersion->setObjectName(QStringLiteral("ModsVersionField"));
     m_gameVersion->setPlaceholderText(QStringLiteral("Ej. 1.21.10"));
-    m_gameVersion->setAccessibleName(QStringLiteral("Versión de Minecraft para filtrar mods"));
-    m_gameVersion->setToolTip(QStringLiteral("Escribe la versión exacta de tu instalación"));
+    m_gameVersion->setAccessibleName(QStringLiteral("Versión exacta de Minecraft para filtrar mods"));
+    m_gameVersion->setToolTip(QStringLiteral("Usa la versión exacta de tu instalación"));
     m_gameVersion->setMaxLength(32);
-    m_gameVersion->setMaximumWidth(150);
-    filters->addWidget(m_gameVersion);
-    m_loader = new QComboBox(this);
-    m_loader->setAccessibleName(QStringLiteral("Cargador de mods"));
+    m_gameVersion->setMaximumWidth(180);
+    filterRow->addWidget(m_gameVersion);
+    auto* loaderLabel = new QLabel(QStringLiteral("Cargador"), filtersFrame);
+    loaderLabel->setObjectName(QStringLiteral("Secondary"));
+    filterRow->addWidget(loaderLabel);
+    m_loader = new QComboBox(filtersFrame);
+    m_loader->setObjectName(QStringLiteral("ModsLoader"));
+    m_loader->setAccessibleName(QStringLiteral("Cargador para filtrar mods compatibles"));
     m_loader->addItem(QStringLiteral("Fabric"), QStringLiteral("fabric"));
     m_loader->addItem(QStringLiteral("Forge"), QStringLiteral("forge"));
     m_loader->addItem(QStringLiteral("NeoForge"), QStringLiteral("neoforge"));
-    filters->addWidget(m_loader);
-    m_searchButton = new QPushButton(QStringLiteral("Buscar"), this);
-    m_searchButton->setObjectName(QStringLiteral("Primary"));
-    m_searchButton->setAccessibleName(QStringLiteral("Buscar mods compatibles en Modrinth"));
-    filters->addWidget(m_searchButton);
-    layout->addLayout(filters);
-    auto* sourceNote = new QLabel(
-        QStringLiteral("Resultados de Modrinth para la versión y el cargador elegidos. Revisa la versión, licencia y página del proyecto antes de descargar; CUB3 aún no instala cargadores."), this);
-    sourceNote->setObjectName(QStringLiteral("Secondary"));
-    sourceNote->setWordWrap(true);
-    layout->addWidget(sourceNote);
+    filterRow->addWidget(m_loader);
+    auto* sortLabel = new QLabel(QStringLiteral("Ordenar"), filtersFrame);
+    sortLabel->setObjectName(QStringLiteral("Secondary"));
+    filterRow->addWidget(sortLabel);
+    m_sort = new QComboBox(filtersFrame);
+    m_sort->setObjectName(QStringLiteral("ModsSort"));
+    m_sort->setAccessibleName(QStringLiteral("Ordenar resultados de Modrinth"));
+    m_sort->addItem(QStringLiteral("Relevancia"), QStringLiteral("relevance"));
+    m_sort->addItem(QStringLiteral("Más descargas"), QStringLiteral("downloads"));
+    m_sort->addItem(QStringLiteral("Más seguidores"), QStringLiteral("follows"));
+    m_sort->addItem(QStringLiteral("Actualizados"), QStringLiteral("updated"));
+    filterRow->addWidget(m_sort, 1);
+    filtersLayout->addLayout(filterRow);
+    layout->addWidget(filtersFrame);
 
     m_results = new QListWidget(this);
     m_results->setObjectName(QStringLiteral("InstanceList"));
-    m_results->setAccessibleName(QStringLiteral("Resultados de mods compatibles"));
+    m_results->setAccessibleName(QStringLiteral("Resultados de mods compatibles de Modrinth"));
     m_results->setSelectionMode(QAbstractItemView::SingleSelection);
     m_results->setUniformItemSizes(false);
+    m_results->setSpacing(7);
     layout->addWidget(m_results, 1);
 
     auto* actions = new QHBoxLayout();
-    m_status = new QLabel(QStringLiteral("Escribe una versión exacta y busca para ver mods compatibles."), this);
+    m_status = new QLabel(QStringLiteral("Elige Minecraft y cargador; Modrinth mostrará proyectos compatibles."), this);
     m_status->setObjectName(QStringLiteral("ModsStatus"));
     m_status->setAccessibleName(QStringLiteral("Estado de búsqueda y descarga de mods"));
     m_status->setWordWrap(true);
     actions->addWidget(m_status, 1);
-    m_downloadButton = new QPushButton(QStringLiteral("Descargar mod seleccionado"), this);
-    m_downloadButton->setToolTip(QStringLiteral("Descarga el archivo del mod; el cargador se configura por separado"));
-    m_downloadButton->setEnabled(false);
-    connect(m_downloadButton, &QPushButton::clicked, this, &ModsPage::installSelected);
-    actions->addWidget(m_downloadButton);
     m_projectButton = new QPushButton(QStringLiteral("Ver proyecto ↗"), this);
-    m_projectButton->setAccessibleName(QStringLiteral("Abrir la página del proyecto seleccionado en Modrinth"));
+    m_projectButton->setObjectName(QStringLiteral("SecondaryButton"));
+    m_projectButton->setAccessibleName(QStringLiteral("Abrir la ficha del proyecto seleccionado en Modrinth"));
     m_projectButton->setEnabled(false);
     connect(m_projectButton, &QPushButton::clicked, this, [this] {
         const auto* item = m_results->currentItem();
@@ -109,11 +177,24 @@ ModsPage::ModsPage(application::Cub3App* app, QWidget* parent)
         QDesktopServices::openUrl(QUrl(QStringLiteral("https://modrinth.com/mod/%1").arg(projectId)));
     });
     actions->addWidget(m_projectButton);
-    auto* curseButton = new QPushButton(QStringLiteral("Buscar en CurseForge ↗"), this);
-    curseButton->setAccessibleName(QStringLiteral("Abrir búsqueda de mods en CurseForge"));
+    m_downloadButton = new QPushButton(QStringLiteral("Descargar .jar"), this);
+    m_downloadButton->setObjectName(QStringLiteral("Primary"));
+    m_downloadButton->setToolTip(QStringLiteral("Descarga el archivo del mod; el cargador se configura por separado"));
+    m_downloadButton->setEnabled(false);
+    connect(m_downloadButton, &QPushButton::clicked, this, &ModsPage::installSelected);
+    actions->addWidget(m_downloadButton);
+    auto* curseButton = new QPushButton(QStringLiteral("CurseForge ↗"), this);
+    curseButton->setObjectName(QStringLiteral("SecondaryButton"));
+    curseButton->setAccessibleName(QStringLiteral("Abrir la búsqueda con estos filtros en CurseForge"));
     connect(curseButton, &QPushButton::clicked, this, &ModsPage::openCurseForge);
     actions->addWidget(curseButton);
     layout->addLayout(actions);
+
+    auto* note = new QLabel(
+        QStringLiteral("CUB3 descarga archivos de Modrinth, pero no instala Fabric, Forge ni NeoForge. Revisa la página y licencia del proyecto antes de instalar."), this);
+    note->setObjectName(QStringLiteral("Secondary"));
+    note->setWordWrap(true);
+    layout->addWidget(note);
 
     connect(m_searchButton, &QPushButton::clicked, this, &ModsPage::search);
     connect(m_query, &QLineEdit::returnPressed, this, &ModsPage::search);
@@ -121,6 +202,8 @@ ModsPage::ModsPage(application::Cub3App* app, QWidget* parent)
     connect(m_query, &QLineEdit::textChanged, this, &ModsPage::updateSelectionActions);
     connect(m_gameVersion, &QLineEdit::textChanged, this, &ModsPage::updateSelectionActions);
     connect(m_loader, qOverload<int>(&QComboBox::currentIndexChanged),
+            this, &ModsPage::updateSelectionActions);
+    connect(m_sort, qOverload<int>(&QComboBox::currentIndexChanged),
             this, &ModsPage::updateSelectionActions);
     connect(m_results, &QListWidget::itemSelectionChanged,
             this, &ModsPage::updateSelectionActions);
@@ -150,6 +233,7 @@ void ModsPage::search() {
     m_resultsForVersion = game;
     m_resultsForLoader = loader;
     m_resultsForQuery = searchText;
+    m_resultsForSort = m_sort->currentData().toString();
     m_searchButton->setEnabled(false);
     m_downloadButton->setEnabled(false);
     m_projectButton->setEnabled(false);
@@ -171,6 +255,7 @@ void ModsPage::search() {
     query.addQueryItem(QStringLiteral("query"), searchText);
     query.addQueryItem(QStringLiteral("facets"), QString::fromUtf8(QJsonDocument(facets).toJson(QJsonDocument::Compact)));
     query.addQueryItem(QStringLiteral("limit"), QStringLiteral("30"));
+    query.addQueryItem(QStringLiteral("index"), m_sort->currentData().toString());
     url.setQuery(query);
     m_app->httpClient().get(url, [callbackGuard, revision, game, loader]
                             (const QByteArray& body, int status) {
@@ -212,19 +297,61 @@ void ModsPage::search() {
             const qint64 downloads = hit.value(QStringLiteral("downloads")).toVariant().toLongLong();
             const QString truncatedDescription = description.size() > 180
                 ? description.left(177).trimmed() + QStringLiteral("…") : description;
-            auto* item = new QListWidgetItem(
-                QStringLiteral("%1\n%2\nDescargas: %3")
-                    .arg(title,
-                         truncatedDescription.isEmpty()
-                            ? QStringLiteral("Sin descripción") : truncatedDescription,
-                         QLocale(QLocale::Spanish).toString(downloads)),
-                callbackGuard->m_results);
+            const qint64 follows = hit.value(QStringLiteral("follows")).toVariant().toLongLong();
+            const QString author = hit.value(QStringLiteral("author")).toString().trimmed();
+            const QStringList categories = [&hit] {
+                QStringList values;
+                const auto array = hit.value(QStringLiteral("display_categories")).toArray();
+                for (const auto& value : array) {
+                    const QString category = value.toString().trimmed();
+                    if (!category.isEmpty() && values.size() < 3)
+                        values.append(category);
+                }
+                return values;
+            }();
+            auto* item = new QListWidgetItem(callbackGuard->m_results);
             item->setData(Qt::UserRole, id);
             item->setData(Qt::UserRole + 1, title);
             item->setData(Qt::UserRole + 2, hit.value(QStringLiteral("slug")).toString());
             item->setData(Qt::UserRole + 3, hit.value(QStringLiteral("icon_url")).toString());
+            item->setData(Qt::UserRole + 4, downloads);
+            item->setData(Qt::UserRole + 5, follows);
+            item->setData(Qt::AccessibleTextRole, title + QStringLiteral(". ") + truncatedDescription);
             item->setToolTip(QStringLiteral("%1 · Proyecto %2 · %3")
                                  .arg(title, hit.value(QStringLiteral("slug")).toString(), id));
+            auto* card = new QWidget(callbackGuard->m_results);
+            card->setObjectName(QStringLiteral("ModResultCard"));
+            card->setAttribute(Qt::WA_TransparentForMouseEvents);
+            auto* cardLayout = new QVBoxLayout(card);
+            cardLayout->setContentsMargins(14, 11, 14, 11);
+            cardLayout->setSpacing(5);
+            auto* titleLabel = new QLabel(title, card);
+            titleLabel->setObjectName(QStringLiteral("ModResultTitle"));
+            titleLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+            auto* descriptionLabel = new QLabel(truncatedDescription.isEmpty()
+                ? QStringLiteral("Sin descripción disponible.") : truncatedDescription, card);
+            descriptionLabel->setObjectName(QStringLiteral("ModResultDescription"));
+            descriptionLabel->setWordWrap(true);
+            descriptionLabel->setTextInteractionFlags(Qt::NoTextInteraction);
+            auto* metadata = new QLabel(
+                QStringLiteral("MODRINTH     ↓ %1     ♡ %2")
+                    .arg(QLocale(QLocale::Spanish).toString(downloads),
+                         QLocale(QLocale::Spanish).toString(follows)), card);
+            metadata->setObjectName(QStringLiteral("ModResultMeta"));
+            metadata->setTextInteractionFlags(Qt::NoTextInteraction);
+            QString metadataText = QStringLiteral("MODRINTH     ↓ %1     ♡ %2")
+                .arg(QLocale(QLocale::Spanish).toString(downloads),
+                     QLocale(QLocale::Spanish).toString(follows));
+            if (!author.isEmpty())
+                metadataText += QStringLiteral("     ·     por %1").arg(author);
+            if (!categories.isEmpty())
+                metadataText += QStringLiteral("     ·     %1").arg(categories.join(QStringLiteral(" · ")));
+            metadata->setText(metadataText);
+            cardLayout->addWidget(titleLabel);
+            cardLayout->addWidget(descriptionLabel);
+            cardLayout->addWidget(metadata);
+            item->setSizeHint(QSize(0, 112));
+            callbackGuard->m_results->setItemWidget(item, card);
         }
         int count = callbackGuard->m_results->count();
         if (count == 0) {
@@ -504,7 +631,19 @@ void ModsPage::updateSelectionActions() {
     const auto* item = m_results->currentItem();
     const bool sameFilters = m_gameVersion->text().trimmed() == m_resultsForVersion
         && m_loader->currentData().toString() == m_resultsForLoader
-        && m_query->text().trimmed() == m_resultsForQuery;
+        && m_query->text().trimmed() == m_resultsForQuery
+        && m_sort->currentData().toString() == m_resultsForSort;
+    if (!m_resultsForVersion.isEmpty() && !sameFilters && !m_downloadInProgress) {
+        m_status->setText(QStringLiteral("Cambiaste algún filtro; vuelve a buscar para actualizar estos resultados antes de descargar."));
+    }
+    for (int i = 0; i < m_results->count(); ++i) {
+        auto* row = m_results->itemWidget(m_results->item(i));
+        if (row) {
+            row->setProperty("selected", m_results->item(i) == item);
+            row->style()->unpolish(row);
+            row->style()->polish(row);
+        }
+    }
     const bool valid = sameFilters && item
         && !item->data(Qt::UserRole).toString().isEmpty();
     m_downloadButton->setEnabled(valid && !m_downloadInProgress);

@@ -754,6 +754,95 @@ QCheckBox::indicator:checked {
     background-color: {{accent}};
     border-color: {{accent}};
 }
+/* ===== CUB3 interface refinement ===== */
+#ContentArea { background-color: {{bgPrimary}}; }
+#WindowTitleBar { min-height: 38px; }
+QLabel#PageTitle { letter-spacing: 0px; }
+QPushButton {
+    min-height: 36px;
+    border: 1px solid {{border}};
+    border-radius: 10px;
+    padding: 8px 14px;
+    font-weight: 600;
+}
+QPushButton:hover { border-color: {{borderHover}}; }
+QPushButton#Primary {
+    min-height: 40px;
+    border: 1px solid {{accent}};
+    border-radius: 10px;
+    padding: 9px 16px;
+    font-weight: 750;
+}
+QPushButton#SecondaryButton { background-color: {{bgSecondary}}; }
+QPushButton:focus, QLineEdit:focus, QComboBox:focus, QListWidget:focus,
+QSpinBox:focus, QDoubleSpinBox:focus, QCheckBox:focus {
+    border: 2px solid {{accent}};
+}
+QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
+    min-height: 26px;
+    border-radius: 10px;
+    padding: 8px 12px;
+}
+QListWidget#InstanceList {
+    border-radius: 15px;
+    padding: 8px;
+}
+QListWidget#InstanceList::item {
+    border-radius: 12px;
+    padding: 8px;
+}
+QProgressBar { text-align: center; }
+QFrame#ModrinthBanner {
+    background: qlineargradient(x1:0,y1:0,x2:1,y2:0, stop:0 {{bgRaised}}, stop:1 {{bgSecondary}});
+    border: 1px solid {{borderHover}};
+    border-radius: 16px;
+}
+QLabel#ModrinthMark {
+    background-color: #1BD96A;
+    border-radius: 12px;
+    color: #092016;
+    font-size: 24px;
+    font-weight: 900;
+}
+QLabel#ModrinthProviderTag, QLabel#ModsSectionEyebrow {
+    color: {{accent}};
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+QLabel#ModrinthTitle { color: {{textPrimary}}; font-size: 15px; font-weight: 800; }
+QLabel#ModrinthDescription { color: {{textSecondary}}; font-size: 12px; }
+QFrame#ModsFilterCard {
+    background-color: {{bgSecondary}};
+    border: 1px solid {{border}};
+    border-radius: 15px;
+}
+QLineEdit#ModsSearchField, QLineEdit#ModsVersionField,
+QComboBox#ModsLoader, QComboBox#ModsSort {
+    min-height: 40px;
+    background-color: {{bgTertiary}};
+    border: 1px solid {{border}};
+    border-radius: 10px;
+}
+QWidget#ModResultCard {
+    background-color: {{bgTertiary}};
+    border: 1px solid {{border}};
+    border-radius: 12px;
+}
+QWidget#ModResultCard[selected="true"] {
+    background-color: {{bgRaised}};
+    border: 1px solid {{accent}};
+}
+QLabel#ModResultTitle { color: {{textPrimary}}; font-size: 15px; font-weight: 750; }
+QLabel#ModResultDescription { color: {{textSecondary}}; font-size: 12px; }
+QLabel#ModResultMeta { color: {{accent}}; font-size: 10px; font-weight: 700; }
+QLabel#ModsStatus {
+    background-color: {{bgSecondary}};
+    border: 1px solid {{border}};
+    border-radius: 10px;
+    color: {{textSecondary}};
+    padding: 9px 12px;
+}
 )EOF");
 
     QString result = tmpl;

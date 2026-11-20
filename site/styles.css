@@ -228,3 +228,12 @@ h2 em { color: var(--green); font-style: normal; }
   .nav-cta { padding-inline: 7px; }
 }
 @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *, *::before, *::after { transition-duration: .01ms !important; } }
+
+/* CUB3 UI polish: clear keyboard focus, quieter surfaces, and reduced motion. */
+:where(button, input, select, a, [tabindex]):focus-visible { outline: 2px solid var(--green); outline-offset: 3px; }
+.feature-card, .download-card, .fix-row, .guide-step { transition: border-color .18s ease, transform .18s ease, background-color .18s ease; }
+.feature-card:hover, .fix-row:hover, .guide-step:hover { border-color: rgba(89,223,121,.32); }
+.download-card:focus-visible { border-color: var(--green); }
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
