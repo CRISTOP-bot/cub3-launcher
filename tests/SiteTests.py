@@ -102,15 +102,23 @@ class SiteTests(unittest.TestCase):
         self.assertIn('prefers-reduced-motion:reduce', css)
         self.assertIn('backdrop-filter:blur(18px)', css)
 
-    def test_contributions_are_pull_request_only(self):
-        index = (SITE / 'index.html').read_text(encoding='utf-8')
-        contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8')
-        readme = (ROOT / 'README.md').read_text(encoding='utf-8')
-        self.assertIn('Todos los cambios se envían mediante pull request a', index)
-        self.assertIn('no se aceptan contribuciones con push directo', index.lower())
-        self.assertIn('CONTRIBUTING.md', index)
-        self.assertIn('no se aceptan contribuciones mediante', contributing)
-        self.assertIn('No se aceptan pushes ni commits directos', readme)
+    def test_contributor_write_access_and_protected_branch_pr_flow(self):
+        index = (SITE / 'index.html').read_text(encoding='utf-8').lower()
+        contributing = (ROOT / 'CONTRIBUTING.md').read_text(encoding='utf-8').lower()
+        readme = (ROOT / 'README.md').read_text(encoding='utf-8').lower()
+        self.assertIn('pull request a <code>dev</code>', index)
+        self.assertIn('con permiso de escritura puedes hacer commits en ramas', index)
+        self.assertIn('sin acceso, contribuye desde un fork', index)
+        self.assertIn('contributing.md', index)
+        for guide in (contributing, readme):
+            self.assertIn('permiso de escritura', guide)
+            self.assertIn('quienes no tienen ese acceso', guide)
+            self.assertIn('fork', guide)
+            self.assertIn('pull request', guide)
+            self.assertIn('push directo a `dev` ni a `main`', guide)
+            self.assertIn('revisión', guide)
+            self.assertIn('validaciones', guide)
+        self.assertNotIn('todas las contribuciones se envían', readme)
 
     def test_windows_zip_is_published_only_from_the_matching_successful_ci_artifact(self):
         index = (SITE / 'index.html').read_text(encoding='utf-8')
