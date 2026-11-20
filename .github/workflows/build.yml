@@ -27,6 +27,8 @@ jobs:
         run: cmake --build build --parallel 2
       - name: Run tests
         run: ctest --test-dir build --output-on-failure
+      - name: Check Windows workflow contract
+        run: python3 tests/WindowsWorkflowTests.py
       - name: Check patch whitespace
         if: github.event_name == 'push'
         run: git diff --check HEAD^ HEAD
@@ -36,6 +38,7 @@ jobs:
 
   windows-release:
     runs-on: windows-2022
+    timeout-minutes: 150
     steps:
       - name: Checkout CUB3
         uses: actions/checkout@v4
@@ -53,13 +56,31 @@ jobs:
         shell: pwsh
         run: .\vcpkg\bootstrap-vcpkg.bat -disableMetrics
 
-      - name: Cache Windows vcpkg packages
-        uses: actions/cache@v4
+      # Save dependencies immediately after installation, not at the end of the
+      # whole job: a later CUB3 build or packaging failure must not discard Qt.
+      - name: Restore Windows vcpkg installation
+        id: vcpkg-cache
+        uses: actions/cache/restore@v4
         with:
           path: vcpkg_installed
-          key: cub3-vcpkg-windows-x64-${{ hashFiles('vcpkg.json') }}
+          key: cub3-vcpkg-installed-windows-2022-x64-v2-${{ hashFiles('vcpkg.json') }}
 
-      - name: Configure and build with vcpkg
+      - name: Install Windows dependencies with vcpkg
+        shell: pwsh
+        timeout-minutes: 120
+        run: |
+          $installedDir = Join-Path $PWD 'vcpkg_installed'
+          & .\vcpkg\vcpkg.exe install --triplet x64-windows "--x-manifest-root=$PWD" "--x-install-root=$installedDir"
+          if ($LASTEXITCODE -ne 0) { throw 'Windows vcpkg dependency installation failed' }
+
+      - name: Save Windows vcpkg installation
+        if: steps.vcpkg-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: vcpkg_installed
+          key: ${{ steps.vcpkg-cache.outputs.cache-primary-key }}
+
+      - name: Configure Windows CMake
         shell: pwsh
         run: |
           $vcpkgRoot = Join-Path $PWD 'vcpkg'
@@ -70,9 +91,14 @@ jobs:
             -DVCPKG_ROOT="$vcpkgRoot" `
             -DVCPKG_TARGET_TRIPLET=x64-windows `
             -DVCPKG_INSTALLED_DIR="$installedDir" `
+            -DVCPKG_MANIFEST_INSTALL=OFF `
             -DCMAKE_BUILD_TYPE=Release `
             -DBUILD_TESTING=ON
           if ($LASTEXITCODE -ne 0) { throw 'Windows CMake configure failed' }
+
+      - name: Build Windows Release
+        shell: pwsh
+        run: |
           cmake --build build --config Release --parallel 2
           if ($LASTEXITCODE -ne 0) { throw 'Windows Release build failed' }
 
