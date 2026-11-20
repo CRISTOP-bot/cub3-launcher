@@ -39,6 +39,8 @@ jobs:
     steps:
       - name: Checkout CUB3
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Checkout pinned vcpkg registry
         uses: actions/checkout@v4

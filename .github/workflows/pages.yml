@@ -37,10 +37,12 @@ jobs:
         run: |
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-            ca-certificates git build-essential cmake qt6-base-dev \
+            ca-certificates git build-essential cmake python3 qt6-base-dev \
             libqt6sql6-sqlite qtkeychain-qt6-dev unzip file
       - name: Descargar código
         uses: actions/checkout@v4
+      - name: Validar sitio y referencias locales
+        run: python3 tests/SiteTests.py
       - name: Compilar paquete .deb de desarrollo
         run: |
           cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_TESTING=OFF \
@@ -89,6 +91,13 @@ jobs:
           cp site/assets/logos/*.svg _site/assets/logos/
           cp site/assets/platforms/*.png _site/assets/platforms/
           cp site/downloads/cub3-launcher-dev-amd64.deb _site/downloads/
+      - name: Comprobar paquete y recursos publicados
+        run: |
+          test -s _site/downloads/cub3-launcher-dev-amd64.deb
+          file _site/downloads/cub3-launcher-dev-amd64.deb | grep -q 'Debian binary package'
+          for asset in cherry-grove.png launcher-preview.png; do test -s "_site/assets/$asset"; done
+          for logo in linux.png windows.png macos.png; do test -s "_site/assets/platforms/$logo"; done
+          test -s _site/assets/logos/cub3-logo-01-island.svg
       - name: Preparar GitHub Pages
         uses: actions/configure-pages@v5
       - name: Subir sitio
@@ -98,3 +107,4 @@ jobs:
       - name: Publicar sitio
         id: deployment
         uses: actions/deploy-pages@v4
+
