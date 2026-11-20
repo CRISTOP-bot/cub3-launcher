@@ -4,6 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f0e8">
+  <script>
+    (() => {
+      let theme = null;
+      try { theme = localStorage.getItem('cub3-site-theme'); } catch (_) {}
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <meta name="description" content="CUB3 es un launcher de Minecraft independiente para preparar versiones, administrar tus ajustes y explorar mods de Modrinth.">
   <meta property="og:title" content="CUB3 — Prepara tu próxima partida">
   <meta property="og:description" content="Versiones, perfiles, mods y ajustes de Minecraft reunidos en CUB3 Launcher.">
@@ -18,7 +28,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261119-2">
+  <link rel="stylesheet" href="styles.css?v=20261120-1">
 </head>
 <body>
   <div class="announcement"><span class="announcement-dot"></span> LAUNCHER EXPERIMENTAL EN DESARROLLO <span class="announcement-sep">/</span> C++ · QT · MULTIPLATAFORMA</div>
@@ -27,7 +37,7 @@
     <nav class="main-nav" aria-label="Navegación principal">
       <a href="#launcher">El launcher</a><a href="#mods">Mods</a><a href="#seguridad">Enfoque</a><a href="#fixes">Cambios</a><a href="#descargas">Descargas</a>
     </nav>
-    <a class="header-link" href="https://github.com/CRISTOP-bot/cub3-launcher">Ver en GitHub <span aria-hidden="true">↗</span></a>
+    <div class="header-actions"><button class="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false"><span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Modo oscuro</span></button><a class="header-link" href="https://github.com/CRISTOP-bot/cub3-launcher">Ver en GitHub <span aria-hidden="true">↗</span></a></div>
   </header>
 
   <main id="inicio">
@@ -178,5 +188,29 @@
   </main>
 
   <footer class="site-footer"><a class="footer-brand" href="#inicio">CUB3 <span>LAUNCHER</span></a><p>Proyecto independiente; no afiliado con Mojang ni Microsoft.</p><a href="politica.html">Uso y privacidad ↗</a><a href="https://github.com/CRISTOP-bot/cub3-launcher">GitHub ↗</a><span>© 2026</span></footer>
+  <script>
+    (() => {
+      const button = document.querySelector('.theme-toggle');
+      if (!button) return;
+      const label = button.querySelector('.theme-label');
+      const icon = button.querySelector('.theme-icon');
+      const meta = document.querySelector('meta[name="theme-color"]');
+      const update = (theme) => {
+        document.documentElement.dataset.theme = theme;
+        const dark = theme === 'dark';
+        button.setAttribute('aria-pressed', String(dark));
+        button.setAttribute('aria-label', dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+        label.textContent = dark ? 'Modo claro' : 'Modo oscuro';
+        icon.textContent = dark ? '☼' : '◐';
+        if (meta) meta.setAttribute('content', dark ? '#111a16' : '#f3f0e8');
+      };
+      update(document.documentElement.dataset.theme || 'light');
+      button.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('cub3-site-theme', next); } catch (_) {}
+        update(next);
+      });
+    })();
+  </script>
 </body>
 </html>

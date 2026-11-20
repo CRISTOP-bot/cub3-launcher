@@ -4,6 +4,16 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#f3f0e8">
+  <script>
+    (() => {
+      let theme = null;
+      try { theme = localStorage.getItem('cub3-site-theme'); } catch (_) {}
+      if (theme !== 'light' && theme !== 'dark') {
+        theme = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+      }
+      document.documentElement.dataset.theme = theme;
+    })();
+  </script>
   <meta name="description" content="Política de uso, privacidad y limitaciones de CUB3 Launcher.">
   <link rel="canonical" href="https://cristop-bot.github.io/cub3-launcher/politica.html">
   <title>Uso y privacidad — CUB3 Launcher</title>
@@ -11,11 +21,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500;600;700;800&family=Newsreader:opsz,wght@6..72,400;6..72,500;6..72,600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=20261119-2">
+  <link rel="stylesheet" href="styles.css?v=20261120-1">
 </head>
 <body class="policy-page">
   <div class="announcement"><span class="announcement-dot"></span> CUB3 LAUNCHER <span class="announcement-sep">/</span> INFORMACIÓN DE USO</div>
-  <header class="site-header"><a class="wordmark" href="index.html" aria-label="CUB3, inicio"><img class="brand-logo" src="assets/logos/cub3-logo-01-island.svg" alt="" width="136" height="44"></a><nav class="main-nav" aria-label="Navegación principal"><a href="index.html#launcher">El launcher</a><a href="index.html#mods">Mods</a><a href="index.html#descargas">Descargas</a></nav><a class="header-link" href="index.html">Volver al sitio <span aria-hidden="true">↗</span></a></header>
+  <header class="site-header"><a class="wordmark" href="index.html" aria-label="CUB3, inicio"><img class="brand-logo" src="assets/logos/cub3-logo-01-island.svg" alt="" width="136" height="44"></a><nav class="main-nav" aria-label="Navegación principal"><a href="index.html#launcher">El launcher</a><a href="index.html#mods">Mods</a><a href="index.html#descargas">Descargas</a></nav><div class="header-actions"><button class="theme-toggle" type="button" aria-label="Cambiar a modo oscuro" aria-pressed="false"><span class="theme-icon" aria-hidden="true">◐</span><span class="theme-label">Modo oscuro</span></button><a class="header-link" href="index.html">Volver al sitio <span aria-hidden="true">↗</span></a></div></header>
   <main class="policy-main">
     <div class="policy-hero"><p class="kicker"><span>INFO / 01</span> CUB3 LAUNCHER · BUILD DE DESARROLLO</p><h1>Uso y<br><em>privacidad.</em></h1><p>Información para quienes descargan o usan CUB3 Launcher.</p><span class="policy-date">ÚLTIMA ACTUALIZACIÓN · 17 NOVIEMBRE 2026</span></div>
     <aside class="policy-notice"><span class="notice-mark">!</span><p><strong>Importante:</strong> CUB3 está en desarrollo y se ofrece sin garantía. Esta página explica las prácticas actuales del proyecto; no sustituye los términos de Microsoft, Mojang Studios, Ely.by ni asesoría legal.</p></aside>
@@ -28,5 +38,29 @@
     <p class="policy-footnote">Esta política describe el proyecto tal como está implementado y publicado hoy; no representa una promesa de seguridad absoluta ni una garantía de disponibilidad o compatibilidad.</p>
   </main>
   <footer class="site-footer"><a class="footer-brand" href="index.html">CUB3 <span>LAUNCHER</span></a><p>Proyecto independiente; no afiliado con Mojang ni Microsoft.</p><a href="index.html">Inicio ↗</a><a href="https://github.com/CRISTOP-bot/cub3-launcher">GitHub ↗</a><span>© 2026</span></footer>
+  <script>
+    (() => {
+      const button = document.querySelector('.theme-toggle');
+      if (!button) return;
+      const label = button.querySelector('.theme-label');
+      const icon = button.querySelector('.theme-icon');
+      const meta = document.querySelector('meta[name="theme-color"]');
+      const update = (theme) => {
+        document.documentElement.dataset.theme = theme;
+        const dark = theme === 'dark';
+        button.setAttribute('aria-pressed', String(dark));
+        button.setAttribute('aria-label', dark ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro');
+        label.textContent = dark ? 'Modo claro' : 'Modo oscuro';
+        icon.textContent = dark ? '☼' : '◐';
+        if (meta) meta.setAttribute('content', dark ? '#111a16' : '#f3f0e8');
+      };
+      update(document.documentElement.dataset.theme || 'light');
+      button.addEventListener('click', () => {
+        const next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+        try { localStorage.setItem('cub3-site-theme', next); } catch (_) {}
+        update(next);
+      });
+    })();
+  </script>
 </body>
 </html>

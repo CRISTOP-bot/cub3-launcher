@@ -82,6 +82,19 @@ class SiteTests(unittest.TestCase):
         self.assertRegex(css, r'\.download-name\s*\{[^}]*min-width:0')
         self.assertIn('@media(max-width:360px)', css)
 
+    def test_theme_switch_and_motion_accessibility(self):
+        for name in ('index.html', 'politica.html'):
+            content = (SITE / name).read_text(encoding='utf-8')
+            self.assertIn("localStorage.getItem('cub3-site-theme')", content)
+            self.assertIn("localStorage.setItem('cub3-site-theme', next)", content)
+            self.assertIn('aria-pressed="false"', content)
+        css = (SITE / 'styles.css').read_text(encoding='utf-8')
+        self.assertIn(':root[data-theme="dark"]', css)
+        self.assertIn('@keyframes rise-in', css)
+        self.assertIn('@keyframes drift', css)
+        self.assertIn('prefers-reduced-motion:reduce', css)
+        self.assertIn('backdrop-filter:blur(18px)', css)
+
     def test_windows_checkout_has_parent_for_diff_check(self):
         workflow = (ROOT / '.github/workflows/build.yml').read_text(encoding='utf-8')
         windows = workflow.split('  windows-release:', 1)[1]
