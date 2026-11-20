@@ -1,9 +1,15 @@
-# Motor nativo C++ — estado inicial
+# Motor nativo C++ de CUB3 — estado
 
-Este es un núcleo de mundo voxel independiente escrito en C++20, separado de la capa Qt del launcher. La primera pieza (`src/engine/World.*`) define bloques `Air`, `Grass`, `Dirt` y `Stone`, chunks de 16×128×16, terreno determinista por semilla/coordenada y conversión robusta de coordenadas de mundo negativas a coordenadas locales. Las pruebas verifican generación reproducible, acceso y edición con límites y división de coordenadas negativas.
+El código de motor se desarrolla **dentro de CUB3**, para que CUB3 sea el único programa que el usuario necesita abrir. La meta a largo plazo es ofrecer desde Perfiles una edición nativa del juego, descargable/actualizable/ejecutable desde el propio launcher, una vez que exista una build jugable real. Esto no es una segunda aplicación de launcher.
 
-## Límites actuales
+La implementación es clean-room: reproduce por etapas el comportamiento observable de Minecraft Java, inspirándose en el método de Horizon. No traduce ni copia código de Horizon o Mojang, no modifica el cliente oficial y no incluye archivos del juego.
 
-Esta base **no es un juego jugable**: aún faltan renderizado, cámara/controles, colisiones y física, ciclo de actualización, gestión/streaming de chunks, inventario, guardado, sonido y una interfaz de juego. No carga, distribuye ni imita los assets, código ni formato de mundos de Minecraft; no declara compatibilidad ni paridad con Minecraft u Horizon. El generador actual es una superficie de prueba sencilla, no un generador de terreno de Minecraft.
+## Prototipos y límites
 
-Las siguientes etapas deben avanzar como cambios pequeños compilables con pruebas propias; validar cada comportamiento contra una referencia solo cuando exista una implementación real y una especificación verificable. Recursos y archivos del juego siguen siendo responsabilidad del usuario y deben respetar sus licencias y términos.
+`src/engine/World.*` es un prototipo pequeño con bloques básicos, chunks 16×128×16, una superficie determinista de prueba y acceso a bloques. No es un mundo Minecraft, no genera su terreno, no es jugable y no ofrece paridad.
+
+El parser NBT de `src/engine/Nbt.*` es la primera pieza de lectura de formato del juego: decodifica NBT big-endian con límites configurables para tamaño, elementos y profundidad. Sus fixtures son creados por las pruebas, no tomados de mundos de usuario. Tampoco convierte por sí solo un mundo en algo jugable.
+
+**Todavía no existe una versión C++ instalable ni descargable desde CUB3.** Faltan lectura comprimida de regiones Anvil, carga real de mundos, modelo de bloques, renderizador, controles, simulación, guardado y un runtime funcional. No se debe anunciar una build de Minecraft C++ hasta que exista y se pruebe.
+
+La siguiente etapa debe avanzar en cambios pequeños compilables, con pruebas de formato y comparaciones diferenciales controladas contra Minecraft 26.3 cuando sea posible. Solo cuando haya un runtime nativo real se conectarán su descarga, verificación y lanzamiento a Perfiles de CUB3. La distribución de assets oficiales debe respetar las condiciones de Mojang y depender de la copia legítima del usuario.
