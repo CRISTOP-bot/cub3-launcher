@@ -654,6 +654,19 @@ QLineEdit, QSpinBox, QDoubleSpinBox, QComboBox {
 QLineEdit:hover, QSpinBox:hover, QComboBox:hover {
     border-color: {{borderHover}};
 }
+QWidget#LibraryFilterCard {
+    background-color: {{bgSecondary}};
+    border: 1px solid {{border}};
+    border-radius: 14px;
+}
+QLineEdit#LibrarySearchField, QComboBox#LibrarySortSelector {
+    min-height: 38px;
+    background-color: {{bgTertiary}};
+    border: 1px solid {{border}};
+    border-radius: 10px;
+}
+QLineEdit#LibrarySearchField { padding-left: 12px; }
+QComboBox#LibrarySortSelector { min-width: 130px; }
 QListWidget#InstanceList, QListWidget {
     background-color: {{bgSecondary}};
     alternate-background-color: {{bgTertiary}};

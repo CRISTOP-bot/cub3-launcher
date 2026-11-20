@@ -47,6 +47,7 @@ Haz copias de seguridad de tus mundos antes de probar builds de desarrollo.
 - Inicio de sesión con Microsoft y Ely.by.
 - Restauración automática de sesión desde el llavero seguro del sistema.
 - Instalación y ejecución de versiones vanilla.
+- Búsqueda y orden por nombre o versión de instalaciones locales en Perfiles, con acceso directo a la carpeta existente de cada instalación.
 - Feed de noticias oficial de Minecraft.
 - Preferencias de Java, memoria, resolución, rutas y descargas.
 - Paquete `.deb` para Linux y build portable ZIP x64 para Windows (artefacto de desarrollo de CI).
