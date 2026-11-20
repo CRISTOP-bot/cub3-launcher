@@ -25,7 +25,7 @@
   <header class="site-header">
     <a class="wordmark" href="#inicio" aria-label="CUB3, inicio"><span class="wordmark-icon">C<span>3</span></span><span class="wordmark-name">CUB3<small>LAUNCHER</small></span></a>
     <nav class="main-nav" aria-label="Navegación principal">
-      <a href="#launcher">El launcher</a><a href="#mods">Mods</a><a href="#seguridad">Enfoque</a><a href="#descargas">Descargas</a>
+      <a href="#launcher">El launcher</a><a href="#mods">Mods</a><a href="#seguridad">Enfoque</a><a href="#fixes">Cambios</a><a href="#descargas">Descargas</a>
     </nav>
     <a class="header-link" href="https://github.com/CRISTOP-bot/cub3-launcher">Ver en GitHub <span aria-hidden="true">↗</span></a>
   </header>
@@ -49,7 +49,7 @@
 
     <div class="marquee" aria-label="Versiones, perfiles, mods, mundos"><div>VERSIONES <i>✳</i> PERFILES <i>✳</i> MODS <i>✳</i> MUNDOS <i>✳</i> VERSIONES <i>✳</i> PERFILES <i>✳</i> MODS <i>✳</i> MUNDOS <i>✳</i></div></div>
 
-    <section class="intro section-shell" id="launcher">
+    <section class="intro section-shell" id="launcher"><span id="caracteristicas" class="anchor-target" aria-hidden="true"></span>
       <div class="section-index"><span>01</span><span>EL LAUNCHER</span></div>
       <div class="intro-body"><p class="eyebrow">TODO EN SU SITIO</p><h2>Tu próxima partida<br>empieza <em>antes de jugar.</em></h2><p class="intro-text">CUB3 reúne la preparación de Minecraft en una sola app. Elige una versión, configura tu entorno y sigue lo que está pasando mientras el juego se alista.</p></div>
       <figure class="app-shot"><div class="shot-top"><span><i></i><i></i><i></i></span><b>CUB3 / PREVIEW</b><span class="shot-label">CAPTURA DE UNA VERSIÓN ANTERIOR</span></div><img src="assets/launcher-preview.png" alt="Captura de una versión anterior de CUB3 Launcher" loading="lazy"><figcaption><span>INTERFAZ DEL LAUNCHER</span><span>EL DISEÑO SIGUE EVOLUCIONANDO ↗</span></figcaption></figure>
@@ -82,6 +82,79 @@
       </div>
     </section>
 
+    <section class="change-history section-shell" id="fixes">
+      <div class="section-index"><span>↳</span><span>REGISTRO DE CAMBIOS</span></div>
+      <div class="change-history-content"><p class="eyebrow">EL CAMINO HASTA AQUÍ</p><h2>Avances, <em>sin esconderlos.</em></h2><p>Un historial de los cambios del launcher y sus límites actuales. Las pruebas automáticas no sustituyen la verificación manual de cada función.</p>
+      <details class="change-details"><summary>Consultar los 16 cambios documentados <span>＋</span></summary>
+      <div class="fixes-list">
+        <article class="fix-row">
+          <span class="fix-number">01</span>
+          <div><h3>Restauración al abrir</h3><p><b>Antes</b> · una sesión sin expirar podía mostrarse sin comprobarla con el proveedor.</p><p><b>Ahora</b> · Microsoft o Ely.by validan la sesión antes de mostrar la cuenta; los tokens próximos a expirar se renuevan.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">02</span>
+          <div><h3>Errores del llavero visibles</h3><p><b>Antes</b> · una escritura fallida podía dejar la impresión de que la sesión se había guardado.</p><p><b>Ahora</b> · se informa el resultado del llavero seguro; no se usa SQLite ni archivos en texto plano para los tokens.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">03</span>
+          <div><h3>Login y logout sin carreras</h3><p><b>Antes</b> · operaciones asíncronas antiguas podían terminar después de un login nuevo o un cierre de sesión.</p><p><b>Ahora</b> · las operaciones de credenciales se ordenan y las respuestas obsoletas se descartan.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">04</span>
+          <div><h3>Perfil Ely.by conservado</h3><p><b>Antes</b> · al renovar se reconstruía la cuenta y se podían perder datos del perfil.</p><p><b>Ahora</b> · se conservan UUID, nombre y URL de skin si el proveedor no devuelve un valor nuevo.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">05</span>
+          <div><h3>Solo conexiones HTTPS</h3><p><b>Antes</b> · algunas rutas de red aceptaban URLs HTTP o con credenciales incrustadas.</p><p><b>Ahora</b> · las solicitudes y descargas rechazan URLs que no sean HTTPS o incluyan usuario y contraseña. Los POST de autenticación no siguen redirecciones.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">06</span>
+          <div><h3>Datos privados fuera de los logs</h3><p><b>Antes</b> · los mensajes de error podían incluir la URL completa.</p><p><b>Ahora</b> · se omiten las consultas y fragmentos, que podrían contener parámetros sensibles.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">07</span>
+          <div><h3>Descargas con memoria acotada</h3><p><b>Antes</b> · el búfer de lectura de las descargas no tenía un límite explícito.</p><p><b>Ahora</b> · los archivos se escriben por partes con un búfer de hasta 1 MiB, y se detienen si superan el tamaño anunciado por el manifiesto.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">08</span>
+          <div><h3>Validación antes de instalar el archivo</h3><p><b>Antes</b> · se verificaba el tamaño al terminar la transferencia.</p><p><b>Ahora</b> · el exceso se detecta durante la descarga; el archivo temporal se comprueba por tamaño y, cuando existe, por hash antes de moverlo al destino.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">09</span>
+          <div><h3>Respuestas de API con límite de memoria</h3><p><b>Antes</b> · las respuestas de servicios se acumulaban completas antes de procesarlas.</p><p><b>Ahora</b> · se leen en partes con un búfer de red de 1 MiB y un máximo de 32 MiB por respuesta; las respuestas mayores se cancelan. Las descargas grandes de archivos siguen su flujo separado.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">10</span>
+          <div><h3>Login con progreso y cancelación</h3><p><b>Antes</b> · el formulario desaparecía antes de terminar la autenticación.</p><p><b>Ahora</b> · el diálogo permanece abierto, muestra el estado y el error sin perder el usuario; cancelar Microsoft detiene el sondeo del código de dispositivo. Si falla Ely.by, la contraseña se limpia.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">11</span>
+          <div><h3>Tutorial y pantallas más claros</h3><p><b>Antes</b> · el avance del tutorial y el estado vacío de descargas tenían menos orientación.</p><p><b>Ahora</b> · la guía muestra el paso actual, acepta flechas izquierda/derecha y Inicio permite cambiar de pantalla con Ctrl+1 a Ctrl+5. Ajustes indica cambios sin guardar; controles y formularios tienen nombres accesibles y consejos.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">12</span>
+          <div><h3>Iconos de navegación reutilizados</h3><p><b>Antes</b> · el icono se escalaba y teñía cada vez que se repintaba un botón lateral.</p><p><b>Ahora</b> · se preparan las variantes activa e inactiva al cambiar el recurso y se reutilizan al dibujar. Mejora de trabajo por repintado; no se atribuye una cifra de benchmark.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">13</span>
+          <div><h3>Mods con resultados y filtros claros</h3><p><b>Antes</b> · la búsqueda no explicaba bien si cargaba, había fallado o no había coincidencias.</p><p><b>Ahora</b> · indica versión y cargador, valida la versión, evita respuestas atrasadas y muestra estados de carga, error y lista vacía. Cada resultado puede abrir su página en Modrinth.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">14</span>
+          <div><h3>Descargas de mods con confirmación</h3><p><b>Antes</b> · descargar podía sobrescribir archivos y no dejaba claro que el cargador no se instala.</p><p><b>Ahora</b> · confirma el archivo y destino, pregunta antes de reemplazar, verifica tamaño/hash si Modrinth los ofrece y muestra el progreso. Guarda el `.jar` en la carpeta mods de la ruta de instancias configurada.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">15</span>
+          <div><h3>Port Windows x64 sin quitar Linux</h3><p><b>Antes</b> · CUB3 no se compilaba ni empaquetaba en Windows y las bibliotecas nativas requerían `unzip`.</p><p><b>Ahora</b> · Se configuró CI para compilar y probar Windows con Qt 6/QtKeychain y preparar un ZIP con el `.exe`, DLL, plugins Qt y assets. La generación del ZIP sigue pendiente de validación. Windows utiliza `tar.exe`; Linux conserva su build y `.deb` con `unzip`.</p></div>
+        </article>
+        <article class="fix-row">
+          <span class="fix-number">16</span>
+          <div><h3>Explorador de mods con Modrinth</h3><p><b>Ahora</b> · la búsqueda presenta fichas con descripción, autor, categorías, descargas y seguidores; puedes filtrar por Minecraft y cargador, ordenar resultados de Modrinth y abrir la página del proyecto antes de confirmar la descarga. CurseForge sigue como búsqueda externa.</p></div>
+        </article>
+      </div>
+      </details><p class="change-note">Linux: build y pruebas automáticas. La restauración con cuentas y llavero reales y la ejecución en Windows aún necesitan pruebas manuales.</p></div>
+    </section>
+
     <section class="release-band section-shell">
       <div class="release-stamp">DEV<br><span>BUILD</span></div><div><p class="eyebrow">EN CONSTRUCCIÓN, SIN HUMO</p><h2>Una app que avanza<br><em>con cada prueba.</em></h2><p>El proyecto mantiene CI para Linux y está desarrollando el paquete portable de Windows. La web muestra el estado real de las plataformas; un artefacto experimental no es una versión estable.</p></div><a class="text-link" href="https://github.com/CRISTOP-bot/cub3-launcher/actions">Ver CI y avances <span aria-hidden="true">↗</span></a>
     </section>
@@ -100,6 +173,7 @@
 
     <section class="quickstart section-shell" id="guia"><div class="section-index"><span>05</span><span>QUICK START</span></div><div class="quickstart-head"><p class="eyebrow">DEL PRIMER CLIC AL JUEGO</p><h2>En cinco pasos,<br><em>ya estás.</em></h2></div><ol class="steps"><li><span>01</span><div><strong>Conecta una cuenta</strong><p>Desde Inicio elige Microsoft (abre el navegador) o Ely.by.</p></div></li><li><span>02</span><div><strong>Elige Minecraft</strong><p>Busca y selecciona una versión para preparar sus archivos.</p></div></li><li><span>03</span><div><strong>Configura tu entorno</strong><p>Selecciona Java, memoria, resolución y carpeta del juego.</p></div></li><li><span>04</span><div><strong>Explora y organiza</strong><p>Revisa perfiles, noticias, descargas y mods compatibles.</p></div></li><li><span>05</span><div><strong>Haz clic en Jugar</strong><p>Conserva respaldos de tus mundos, especialmente en builds de desarrollo.</p></div></li></ol></section>
 
+    <section class="identity-history section-shell" id="identidad"><div class="section-index"><span>06</span><span>IDENTIDAD</span></div><div><p class="eyebrow">LAS OPCIONES DE LA MARCA</p><h2>Tres caminos,<br><em>una identidad.</em></h2><p>Las propuestas originales del emblema de CUB3, conservadas para comparar.</p><div class="identity-choices"><figure><img src="assets/logos/cub3-logo-01-island.svg" alt="Propuesta de logo CUB3 Isla"><figcaption>01 / ISLA</figcaption></figure><figure><img src="assets/logos/cub3-logo-02-portal.svg" alt="Propuesta de logo CUB3 Portal"><figcaption>02 / PORTAL</figcaption></figure><figure><img src="assets/logos/cub3-logo-03-monogram.svg" alt="Propuesta de logo CUB3 Monograma"><figcaption>03 / MONOGRAMA</figcaption></figure></div></div></section>
     <section class="closing"><div class="closing-mark">C<span>3</span></div><p class="eyebrow eyebrow-light">TU PRÓXIMA PARTIDA TE ESPERA</p><h2>Prepara el juego.<br><em>Lo demás es tuyo.</em></h2><a class="button button-lime" href="https://github.com/CRISTOP-bot/cub3-launcher">Seguir CUB3 en GitHub <span aria-hidden="true">↗</span></a><div class="closing-decoration">CUB3 · PLAY YOUR WAY</div></section>
   </main>
 
