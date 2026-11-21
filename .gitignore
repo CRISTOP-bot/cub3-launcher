@@ -31,3 +31,4 @@ Makefile
 *.db-shm
 *.db-wal
 *.log
+.vercel
