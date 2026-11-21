@@ -31,7 +31,7 @@ jobs:
           apt-get update
           DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
             ca-certificates git build-essential cmake python3 qt6-base-dev \
-            libqt6sql6-sqlite qtkeychain-qt6-dev unzip file
+            libqt6sql6-sqlite qtkeychain-qt6-dev zlib1g-dev unzip file
       - name: Descargar código del commit validado
         uses: actions/checkout@v4
         with:
